@@ -123,6 +123,27 @@ def _parse_table(section: str) -> List[Dict[str, str]]:
     return rows
 
 
+def _parse_markdown_tables(content: str) -> List[List[Dict[str, str]]]:
+    tables: List[List[Dict[str, str]]] = []
+    current: List[str] = []
+
+    def flush() -> None:
+        if not current:
+            return
+        parsed = _parse_table("\n".join(current))
+        if parsed:
+            tables.append(parsed)
+        current.clear()
+
+    for line in content.splitlines():
+        if line.strip().startswith("|"):
+            current.append(line)
+        else:
+            flush()
+    flush()
+    return tables
+
+
 def _extract_link(markdown: str) -> Optional[str]:
     match = re.search(r"\]\(([^)]+)\)", markdown)
     return match.group(1).strip() if match else None
@@ -155,6 +176,12 @@ class RoadmapEntry:
     feature_id: str
     raw_feature: str
     link: Optional[str]
+
+
+@dataclass
+class StoryStatusRow:
+    story_id: str
+    status: str
 
 
 class TrackerValidator:
@@ -240,7 +267,7 @@ class TrackerValidator:
                 )
             if not resolved.exists():
                 self.add_error(str(self.registry_path), f"Active feature folder does not exist: {resolved}")
-            self._validate_status_doc(feature_id, resolved)
+            self._validate_status_doc(feature_id, resolved, registry_state="Active")
 
         for feature_id, entry in self.registry_archived.items():
             resolved = self.resolve_feature_path(entry.folder)
@@ -257,9 +284,9 @@ class TrackerValidator:
                 )
             if not resolved.exists():
                 self.add_error(str(self.registry_path), f"Archived feature folder does not exist: {resolved}")
-            self._validate_status_doc(feature_id, resolved)
+            self._validate_status_doc(feature_id, resolved, registry_state="Archived")
 
-    def _validate_status_doc(self, feature_id: str, feature_folder: Path) -> None:
+    def _validate_status_doc(self, feature_id: str, feature_folder: Path, registry_state: str) -> None:
         status_file = feature_folder / "STATUS.md"
         if not status_file.exists():
             self.add_error(str(status_file), f"Missing STATUS.md for {feature_id}")
@@ -275,10 +302,32 @@ class TrackerValidator:
             return
 
         overall_status = status_match.group(1).strip()
-        if self._is_done_or_archived(overall_status):
+        if registry_state == "Archived" and not self._is_terminal_status(overall_status):
+            self.add_error(
+                str(status_file),
+                (
+                    f"{feature_id} is listed under Archived Features in REGISTRY.md but "
+                    f"STATUS.md has non-terminal Overall Status: {overall_status!r}"
+                ),
+            )
+
+        if self._requires_done_archive_closeout(overall_status):
             self._validate_signoff_sections(feature_id, status_file, content)
 
-    def _is_done_or_archived(self, overall_status: str) -> bool:
+    def _is_terminal_status(self, overall_status: str) -> bool:
+        normalized = overall_status.casefold()
+        return any(
+            token in normalized
+            for token in (
+                "done",
+                "archived",
+                "abandoned",
+                "superseded",
+                "historical",
+            )
+        )
+
+    def _requires_done_archive_closeout(self, overall_status: str) -> bool:
         normalized = overall_status.casefold()
         return "done" in normalized or "archived" in normalized
 
@@ -329,33 +378,21 @@ class TrackerValidator:
                     f"{feature_id} is Done/Archived but baseline required signoff role is missing: {label}",
                 )
 
-        story_ids = self._extract_story_ids_from_status(content, status_file)
+        story_rows = self._extract_story_status_rows_from_status(content, status_file)
+        story_ids = [row.story_id for row in story_rows]
         if not story_ids:
             self.add_error(
                 str(status_file),
                 f"{feature_id} is Done/Archived but no story IDs were found in Story Checklist/Stories table",
             )
             return
+        self._validate_completed_story_statuses(feature_id, status_file, content, story_rows)
 
-        provenance_section = _extract_first_section(
-            content,
-            [
-                "Story Signoff Provenance",
-                "Story Sign-off Provenance",
-            ],
-        )
-        if not provenance_section:
-            self.add_error(
-                str(status_file),
-                f"{feature_id} is Done/Archived but missing 'Story Signoff Provenance' section",
-            )
-            return
-
-        provenance_rows = _parse_table(provenance_section)
+        provenance_rows = self._extract_story_provenance_rows(content)
         if not provenance_rows:
             self.add_error(
                 str(status_file),
-                f"{feature_id} is Done/Archived but 'Story Signoff Provenance' table is missing or malformed",
+                f"{feature_id} is Done/Archived but missing 'Story Signoff Provenance' section",
             )
             return
 
@@ -415,13 +452,13 @@ class TrackerValidator:
                         f"Required role '{display_role}' is missing PASS/APPROVED provenance for story {story_id}",
                     )
 
-    def _extract_story_ids_from_status(self, content: str, status_file: Path) -> List[str]:
+    def _extract_story_status_rows_from_status(self, content: str, status_file: Path) -> List[StoryStatusRow]:
         section = _extract_first_section(content, ["Story Checklist", "Stories"])
         if not section:
             return []
 
         rows = _parse_table(section)
-        story_ids: List[str] = []
+        story_rows: List[StoryStatusRow] = []
         seen = set()
 
         for row in rows:
@@ -431,13 +468,71 @@ class TrackerValidator:
                 continue
             story_id = match.group(0)
             if story_id not in seen:
-                story_ids.append(story_id)
+                story_rows.append(StoryStatusRow(story_id=story_id, status=row.get("Status", "").strip()))
                 seen.add(story_id)
 
-        if not story_ids:
+        if not story_rows:
             self.add_warning(str(status_file), "No parseable story IDs found in story status table")
 
-        return story_ids
+        return story_rows
+
+    def _validate_completed_story_statuses(
+        self,
+        feature_id: str,
+        status_file: Path,
+        content: str,
+        story_rows: Sequence[StoryStatusRow],
+    ) -> None:
+        for row in story_rows:
+            if self._is_completed_story_status(row.status):
+                continue
+            if self._is_deferred_or_rehomed_story_status(row.status):
+                if self._has_deferred_or_rehomed_record(content, row.story_id):
+                    continue
+                self.add_error(
+                    str(status_file),
+                    (
+                        f"{feature_id} is Done/Archived but story {row.story_id} has status "
+                        f"{row.status!r} without a matching deferred/rehome record"
+                    ),
+                )
+                continue
+            self.add_error(
+                str(status_file),
+                f"{feature_id} is Done/Archived but story {row.story_id} has non-completed status: {row.status!r}",
+            )
+
+    def _is_completed_story_status(self, value: str) -> bool:
+        normalized = re.sub(r"\[[ xX]\]", "", value).strip().casefold()
+        return any(
+            token in normalized
+            for token in ("done", "complete", "completed", "closed", "archived", "approved", "implemented")
+        )
+
+    def _is_deferred_or_rehomed_story_status(self, value: str) -> bool:
+        normalized = value.casefold()
+        return any(token in normalized for token in ("deferred", "rehomed", "re-homed", "promoted", "superseded"))
+
+    def _has_deferred_or_rehomed_record(self, content: str, story_id: str) -> bool:
+        sections = [
+            "Deferred Non-Blocking Follow-ups",
+            "Deferred Follow-ups",
+            "Deferred Scope",
+            "Orphaned Story Review",
+        ]
+        for section_name in sections:
+            section = _extract_section(content, section_name)
+            if story_id in section and re.search(r"F\d{4}|https?://|\[[^\]]+\]\([^)]+\)", section):
+                return True
+        return False
+
+    def _extract_story_provenance_rows(self, content: str) -> List[Dict[str, str]]:
+        required_columns = {"Story", "Role", "Reviewer", "Verdict", "Evidence", "Date"}
+        rows: List[Dict[str, str]] = []
+        for table in _parse_markdown_tables(content):
+            if table and required_columns.issubset(table[0].keys()):
+                rows.extend(table)
+        return rows
 
     def load_roadmap(self) -> List[RoadmapEntry]:
         content = self.read_file(self.roadmap_path)

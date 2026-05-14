@@ -34,6 +34,8 @@ Outputs `{PRODUCT_ROOT}/planning-mds/features/STORY-INDEX.md`.
 
 Validate tracker consistency across `REGISTRY.md`, `ROADMAP.md`, `STORY-INDEX.md`, and `BLUEPRINT.md`.
 Also validates `STATUS.md` closeout signoff governance for features marked `Done`/`Archived`:
+- archived registry entries have a terminal `STATUS.md` overall state
+- done/archived story checklist rows are completed or explicitly deferred/rehomed
 - required signoff matrix exists
 - baseline required roles (`Quality Engineer`, `Code Reviewer`) are marked required
 - required roles have story-level passing provenance entries with reviewer/date/evidence
