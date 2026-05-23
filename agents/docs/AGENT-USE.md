@@ -422,3 +422,24 @@ When done:
 3. Keep prompts explicit about files, outputs, and validation.
 4. Treat `STATUS.md` and tracker updates as part of the work, not optional cleanup.
 5. For implementation work, prefer the feature folder and `feature-assembly-plan.md` over ad hoc verbal summaries.
+
+## Feature Evidence Contract Quick Reference
+
+Roles producing feature-evidence artifacts must write into the canonical feature run folder:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/
+```
+
+| Role | Required artifact(s) at the canonical run folder | Verdict artifact |
+|------|--------------------------------------------------|------------------|
+| Architect | `g0-assembly-plan-validation.md` (when required by STATUS.md) | same |
+| Quality Engineer | `test-plan.md`, `test-execution-report.md`, `coverage-report.md` | `test-execution-report.md` |
+| DevOps | `deployability-check.md`; `g1-runtime-preflight.md` when `runtime_bearing = true` | `deployability-check.md` |
+| Code Reviewer | `code-review-report.md` | same |
+| Security Reviewer | `security-review-report.md` (when forced or required) | same |
+| Product Manager | `signoff-ledger.md`, `pm-closeout.md`, and the feature-root `latest-run.json` | n/a (PM closeout is a gate, not a role-results row by default) |
+
+Recommendation severity scale is `low` / `medium` / `high` / `critical`. `high` and `critical` require explicit PM mitigation in `pm-closeout.md` per §15 PM Acceptance Line Format.
+
+`agents/actions/validate.md` runs produce three reports under the manual-run base path (`{PRODUCT_ROOT}/planning-mds/operations/evidence/{RUN_ID}/`) and do **not** write into any feature evidence package. See `agents/templates/{pm,architect,implementation}-validation-report-template.md`.

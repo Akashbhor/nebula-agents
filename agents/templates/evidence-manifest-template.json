@@ -1,0 +1,50 @@
+{
+  "_comment": "Per §11 of the Feature Evidence Package Standardization contract. Replace placeholders. Strip this _comment field before validation.",
+  "schema_version": 1,
+  "feature_id": "F####",
+  "feature_slug": "{slug}",
+  "run_id": "YYYY-MM-DD-XXXXXXXX",
+  "status": "draft",
+  "recorded_on": "YYYY-MM-DD",
+  "contract_effective_date": "2026-05-19",
+  "feature_path_at_run_start": "planning-mds/features/F####-{slug}",
+  "feature_path_at_closeout": null,
+  "feature_state": "In Progress",
+  "rerun_of": null,
+  "changed_paths": [
+    "planning-mds/features/F####-{slug}"
+  ],
+  "scm": {
+    "base_ref": "main",
+    "head_ref": "feature/F####-{slug}",
+    "diff_artifact": "artifacts/diffs/changed-files.txt"
+  },
+  "runtime_bearing": false,
+  "deployment_config_changed": false,
+  "frontend_in_scope": false,
+  "security_sensitive_scope": false,
+  "required_roles": [
+    "Quality Engineer",
+    "Code Reviewer"
+  ],
+  "gate_results": {
+    "assembly_plan_validation": {
+      "required": true,
+      "result": "PASS",
+      "artifact": "g0-assembly-plan-validation.md"
+    }
+  },
+  "files": {
+    "readme": "README.md",
+    "action_context": "action-context.md",
+    "artifact_trace": "artifact-trace.md",
+    "gate_decisions": "gate-decisions.md",
+    "commands_log": "commands.log",
+    "lifecycle_gates_log": "lifecycle-gates.log",
+    "assembly_plan_validation": "g0-assembly-plan-validation.md"
+  },
+  "role_results": {},
+  "omissions": [],
+  "waivers": {},
+  "global_evidence_refs": {}
+}

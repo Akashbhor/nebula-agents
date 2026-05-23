@@ -427,3 +427,29 @@ Actions:
 Solution-specific:
 - `{PRODUCT_ROOT}/planning-mds/architecture/SOLUTION-PATTERNS.md` — project patterns and conventions
 - `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md` — requirements and architecture decisions
+
+## Feature Evidence Contract (§14, §15, §22)
+
+Code Reviewer produces `code-review-report.md` at G3 inside the feature evidence package:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/code-review-report.md
+```
+
+Template: `agents/templates/code-review-report-template.md`. Result values: `APPROVED`, `APPROVED WITH RECOMMENDATIONS`, `REQUEST CHANGES`, `REJECTED`.
+
+### Recommendation Severity Scale (§15)
+
+Every recommendation cited under an `APPROVED WITH RECOMMENDATIONS` verdict uses the canonical bullet:
+
+```text
+- [severity] <recommendation text> — owner: <name-or-role>; follow-up: <ticket-id-or-deferred-no-followup>
+```
+
+Severity is exactly one of `low`, `medium`, `high`, `critical`. A recommendation tagged `high` or `critical` cannot be closeout-passing unless `pm-closeout.md` `Recommendation Acceptances` explicitly mitigates it per §15 PM Acceptance Line Format using the recommendation's ID or text as the `<identifier>` and a `mitigation:` prefix in the details. Without that mitigation, the validator's `blocking_language_with_pass_fails` rule fires.
+
+A blocking finding must yield `REQUEST CHANGES` or `REJECTED`, not be smuggled in as a low/medium recommendation.
+
+### Validator Defect Waiver Mechanics (§11, §22)
+
+If a validator defect would block closeout, the PM may waive the affected rule(s) via `evidence-manifest.json` `waivers.validator_defect` with a follow-up owner and target date, mirrored in `pm-closeout.md` `Validator Defects`. Code Reviewer should not silently bypass blocking findings; only honest validator defects qualify for this waiver.

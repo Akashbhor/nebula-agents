@@ -421,3 +421,23 @@ cat agents/actions/review.md
 
 - `{PRODUCT_ROOT}/planning-mds/security/`
 - `{PRODUCT_ROOT}/planning-mds/security/reviews/`
+
+## Feature Evidence Contract (§10, §15)
+
+Feature security reports live inside the feature evidence package, **not** under `planning-mds/security/reviews/`. The latter remains for broader/release security reviews.
+
+Feature security report path:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/security-review-report.md
+```
+
+Template: `agents/templates/security-review-template.md`. Required when `security_sensitive_scope = true` or Security Reviewer is required in `STATUS.md`.
+
+### Forced Security Role (§7)
+
+Security Reviewer is forced required when `security_sensitive_scope = true` (auth/authz, identity, session/token behavior, permissions/policies, tenant/data boundary, secrets/config, audit logging, PII/sensitive data, dependency/container vulnerability exposure, external integration trust boundary changed).
+
+### Recommendation Severity Scale (§15)
+
+Use the canonical bullet `- [severity] text — owner: X; follow-up: Y` with `low` / `medium` / `high` / `critical`. `high`/`critical` recommendations require PM mitigation per §15 PM Acceptance Line Format in `pm-closeout.md`.

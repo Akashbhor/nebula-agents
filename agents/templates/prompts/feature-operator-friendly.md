@@ -1,6 +1,6 @@
 Before starting, resolve `{PRODUCT_ROOT}` per `agents/docs/AGENT-USE.md` → Session Setup and echo its absolute path on your first turn; every command below assumes that resolution.
 
-Run `agents/actions/feature.md` for `{FEATURE_ID}` at `{PRODUCT_ROOT}/planning-mds/features/{F####-slug}` with `MODE={clean | drift-reconcile}`, `SLICE_ORDER_SOURCE={assembly-plan | override}`, and `RUN_ID={uuid4 generated at session start}`. If you use an override, keep `SLICE_ORDER` verbatim and only parallelize slices inside the same bracketed entry.
+Run `agents/actions/feature.md` for `{FEATURE_ID}` at `{PRODUCT_ROOT}/planning-mds/features/{F####-slug}` with `MODE={clean | drift-reconcile}`, `SLICE_ORDER_SOURCE={assembly-plan | override}`, and `RUN_ID={YYYY-MM-DD-XXXXXXXX run ID per §11 contract — date is local-at-session-start; XXXXXXXX is 8-char hex from cryptographic randomness, e.g. secrets.token_hex(4)}`. If you use an override, keep `SLICE_ORDER` verbatim and only parallelize slices inside the same bracketed entry.
 
 Use these tier defaults exactly:
 - `clean: 1, 2`

@@ -354,3 +354,38 @@ Before declaring work complete, verify deliverables:
 3. Write stories and acceptance criteria
 4. Specify screens and workflows
 5. Validate completeness
+
+## Feature Evidence Contract (§16, §11, §22, §15)
+
+Product Manager owns the closeout artifacts. For every governed completed-terminal feature run produce, under `{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/`:
+
+- `signoff-ledger.md` — strictly consistent with current `STATUS.md` story signoff (latest row per `(story, role)`). Template: `agents/templates/signoff-ledger-template.md`.
+- `pm-closeout.md` — final story status, archive decision, deferred follow-ups, recommendation acceptances, tracker updates, validator results. Template: `agents/templates/pm-closeout-template.md`.
+- `latest-run.json` at the feature evidence root — written only after `patch-prior-manifest.py` succeeds (§17 step 4 patch-then-publish order).
+
+### Recommendation Acceptance Format (§15 PM Acceptance Line Format)
+
+Every PM acceptance uses the canonical Markdown form in `pm-closeout.md` `Recommendation Acceptances`:
+
+```text
+- Accepted: <identifier> — <type-specific details>
+```
+
+`<identifier>` is:
+
+| PM acceptance for | `<identifier>` value | Details |
+|---|---|---|
+| Coverage waiver (§18) | the literal `coverage` | reason; approved date |
+| Validator-defect waiver (§22) | the rule ID from `affected_rule_ids` | defect description; target date |
+| Unknown waiver key (§11) | the waiver key name | reason; approved date |
+| High/critical recommendation (§15) | recommendation ID or text | `mitigation:` followed by mitigation text |
+
+The em-dash separator (`—`, U+2014) and a regular hyphen-minus are both accepted. `Accepted:` and `mitigation:` are case-insensitive.
+
+### Conditional Validator Defects Subsection
+
+When `evidence-manifest.json` `waivers.validator_defect` is present, `pm-closeout.md` must carry a `Validator Defects` subsection (under `Recommendation Acceptances` or as a sibling H2/H3) with one PM Acceptance Line per affected rule ID. The waiver requires `defect_description`, `affected_rule_ids`, `approved_by`, `approved_on`, `follow_up_owner`, and `follow_up_target_date`. The `validator_defect_waived_warns` downgrade activates only when the waiver shape is valid and the PM mirror is present.
+
+### Severity Scale (§15)
+
+Recommendations in role reports use `low` / `medium` / `high` / `critical` severities (case-insensitive). `high` and `critical` are blocking unless a PM Acceptance Line with the `mitigation:` keyword closes them.

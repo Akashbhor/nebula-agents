@@ -457,3 +457,23 @@ Before declaring work complete, verify each deliverable:
 **Symptom:** Backend endpoints diverge from OpenAPI spec.
 **Cause:** Spec was not updated when implementation changed, or backend invented endpoints not in spec.
 **Solution:** OpenAPI spec in `{PRODUCT_ROOT}/planning-mds/api/` is the contract. Backend must implement exactly per spec. Changes require architect approval and spec update first.
+
+## Feature Evidence Contract (§10, §15)
+
+Architect produces `g0-assembly-plan-validation.md` at G0 for every governed completed-terminal feature:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/g0-assembly-plan-validation.md
+```
+
+Architect is also marked required in `STATUS.md` `Required Role Matrix` when explicit architect signoff is needed for the feature.
+
+### Recommendation Severity Scale (§15)
+
+Recommendations under a `PASS WITH RECOMMENDATIONS` verdict use the canonical bullet:
+
+```text
+- [severity] <recommendation text> — owner: <name-or-role>; follow-up: <ticket-id-or-deferred-no-followup>
+```
+
+Severity is exactly one of `low`, `medium`, `high`, `critical`. `high` and `critical` require PM mitigation in `pm-closeout.md` per §15 PM Acceptance Line Format.

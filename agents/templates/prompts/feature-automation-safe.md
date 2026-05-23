@@ -14,7 +14,7 @@ PARAMETERS:
   # SLICE_ORDER:
   #   - {F####-S####}
   #   - [{F####-S####}, {F####-S####}]   # brackets = parallel within entry
-  RUN_ID:              {uuid4 generated at session start}
+  RUN_ID:              {YYYY-MM-DD-XXXXXXXX run ID per §11 — date is local-at-session-start; XXXXXXXX is 8-char hex from cryptographic randomness, e.g. secrets.token_hex(4)}
 
 TIER DEFAULTS (start_tier, max_auto_tier):
   clean:            1, 2

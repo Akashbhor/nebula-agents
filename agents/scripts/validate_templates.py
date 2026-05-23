@@ -281,6 +281,8 @@ def main() -> int:
         for template in templates[action_name]:
             errors.extend(validate_template(action_name, action_contract, template, ontology_owners))
 
+    errors.extend(validate_evidence_template_alignment())
+
     print("Template validation")
     print("-" * 60)
 
@@ -292,6 +294,141 @@ def main() -> int:
 
     print("[PASS] prompt templates align with action contracts.")
     return 0
+
+
+# --------------------------------------------------------------------------- #
+# §24 evidence-template alignment rules (tpl_*)
+# --------------------------------------------------------------------------- #
+
+
+# Canonical evidence templates per §25.
+EVIDENCE_TEMPLATES = [
+    "feature-evidence-readme-template.md",
+    "evidence-manifest-template.json",
+    "feature-action-execution-template.md",
+    "artifact-trace-template.md",
+    "gate-decisions-template.md",
+    "commands-log-template.md",
+    "lifecycle-gates-log-template.md",
+    "runtime-preflight-template.md",
+    "self-review-template.md",
+    "test-plan-template.md",
+    "test-execution-report-template.md",
+    "coverage-report-template.md",
+    "deployability-check-template.md",
+    "code-review-report-template.md",
+    "security-review-template.md",
+    "signoff-ledger-template.md",
+    "pm-closeout-template.md",
+    "pm-validation-report-template.md",
+    "architect-validation-report-template.md",
+    "implementation-validation-report-template.md",
+]
+
+# §8 / §10 / §14 canonical heading sets, keyed by template filename.
+CANONICAL_HEADINGS: dict[str, list[str]] = {
+    "feature-evidence-readme-template.md": ["Run Summary", "Status", "Evidence Index", "Validation Summary", "Open Follow-ups"],
+    "artifact-trace-template.md": [
+        "Artifacts Read",
+        "Artifacts Created Or Updated",
+        "Generated Evidence",
+        "External Or Global Evidence References",
+        "Omissions And Waivers",
+    ],
+    "self-review-template.md": ["Scope Review", "Acceptance Criteria Review", "Implementation Risks", "Validation Evidence"],
+    "signoff-ledger-template.md": ["Required Role Matrix", "Current Signoff State", "Recommendation Acceptances", "Waivers And Omissions"],
+    "pm-closeout-template.md": ["Final Story Status", "Archive Decision", "Deferred Follow-ups", "Recommendation Acceptances", "Tracker Updates", "Validator Results"],
+    "pm-validation-report-template.md": ["Run Identity", "Validation Scope", "PM Findings", "Recommendations", "Result"],
+    "architect-validation-report-template.md": ["Run Identity", "Validation Scope", "Architect Findings", "Recommendations", "Result"],
+    "implementation-validation-report-template.md": ["Run Identity", "Validator Invocations", "Findings By Rule ID", "Recommendations", "Result"],
+}
+
+# §24 (c): action files and prompts that must reference the canonical evidence package.
+ACTIONS_THAT_MUST_REFERENCE_PACKAGE = [
+    ("agents/actions/feature.md", "planning-mds/operations/evidence/"),
+    ("agents/actions/build.md", "planning-mds/operations/evidence/"),
+    ("agents/templates/prompts/feature-automation-safe.md", "planning-mds/operations/evidence/"),
+]
+
+# §24 (d): prompt templates that must not generate `uuid4`-based run IDs.
+PROMPTS_FORBIDDEN_UUID4 = [
+    "agents/templates/prompts/feature-automation-safe.md",
+    "agents/templates/prompts/feature-operator-friendly.md",
+]
+
+# §24 (e): per-gate template references inside feature/build actions.
+GATE_TEMPLATE_REFS: dict[str, list[str]] = {
+    "agents/actions/feature.md": [
+        "g0-assembly-plan-validation.md",
+        "g1-runtime-preflight.md",
+        "g2-self-review.md",
+        "test-plan.md",
+        "test-execution-report.md",
+        "coverage-report.md",
+        "deployability-check.md",
+        "code-review-report.md",
+        "signoff-ledger.md",
+        "pm-closeout.md",
+    ],
+}
+
+
+def validate_evidence_template_alignment() -> list[str]:
+    errors: list[str] = []
+    templates_dir = FRAMEWORK_ROOT / "agents" / "templates"
+
+    # tpl_missing_template_file_fails
+    for filename in EVIDENCE_TEMPLATES:
+        if not (templates_dir / filename).exists():
+            errors.append(f"tpl_missing_template_file_fails: {filename} is missing from agents/templates/")
+
+    # tpl_missing_canonical_heading_fails — per §14 heading-match rule,
+    # we tolerate a trailing parenthesised clause (e.g. "(when WITH RECOMMENDATIONS)").
+    for filename, required_headings in CANONICAL_HEADINGS.items():
+        path = templates_dir / filename
+        if not path.exists():
+            continue
+        content = path.read_text(encoding="utf-8")
+        for heading in required_headings:
+            heading_re = re.compile(
+                rf"^##\s+{re.escape(heading)}(?:\s*\([^)]*\))?\s*$",
+                re.MULTILINE | re.IGNORECASE,
+            )
+            if not heading_re.search(content):
+                errors.append(f"tpl_missing_canonical_heading_fails: {filename} missing required heading '{heading}'")
+
+    # tpl_action_missing_canonical_path_fails
+    for rel_path, needle in ACTIONS_THAT_MUST_REFERENCE_PACKAGE:
+        path = FRAMEWORK_ROOT / rel_path
+        if not path.exists():
+            errors.append(f"tpl_action_missing_canonical_path_fails: {rel_path} does not exist")
+            continue
+        content = path.read_text(encoding="utf-8")
+        if needle not in content:
+            errors.append(f"tpl_action_missing_canonical_path_fails: {rel_path} does not reference canonical path {needle!r}")
+
+    # tpl_prompt_uses_uuid4_fails
+    uuid_re = re.compile(r"uuid4", re.IGNORECASE)
+    for rel_path in PROMPTS_FORBIDDEN_UUID4:
+        path = FRAMEWORK_ROOT / rel_path
+        if not path.exists():
+            continue
+        content = path.read_text(encoding="utf-8")
+        if uuid_re.search(content):
+            errors.append(f"tpl_prompt_uses_uuid4_fails: {rel_path} contains uuid4 reference for run ID")
+
+    # tpl_gate_missing_template_ref_fails
+    for rel_path, expected_refs in GATE_TEMPLATE_REFS.items():
+        path = FRAMEWORK_ROOT / rel_path
+        if not path.exists():
+            errors.append(f"tpl_gate_missing_template_ref_fails: {rel_path} does not exist")
+            continue
+        content = path.read_text(encoding="utf-8")
+        for ref in expected_refs:
+            if ref not in content:
+                errors.append(f"tpl_gate_missing_template_ref_fails: {rel_path} does not reference {ref}")
+
+    return errors
 
 
 if __name__ == "__main__":

@@ -107,6 +107,49 @@ Load in this order when the work is feature-scoped:
 - `G4.6 PM CLOSEOUT` — Step 4.6 Product Manager closeout and archive reconciliation
 - `G4.7 TRACKER SYNC` — Step 4.7 Final tracker validation
 
+## Canonical Evidence Package
+
+Every governed completed-terminal feature run writes its evidence into the canonical package shape (§10) at:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/
+```
+
+The §17 stage matrix dictates which artifacts must exist at each gate. The full set produced by closeout:
+
+- `README.md` (template: `agents/templates/feature-evidence-readme-template.md`)
+- `evidence-manifest.json` (template: `agents/templates/evidence-manifest-template.json`)
+- `action-context.md`
+- `feature-action-execution.md` (template: `agents/templates/feature-action-execution-template.md`)
+- `artifact-trace.md` (template: `agents/templates/artifact-trace-template.md`)
+- `gate-decisions.md` (template: `agents/templates/gate-decisions-template.md`)
+- `commands.log` (schema: `agents/templates/commands-log-template.md`)
+- `lifecycle-gates.log` (schema: `agents/templates/lifecycle-gates-log-template.md`)
+- `g0-assembly-plan-validation.md` (Architect output at G0)
+- `g1-runtime-preflight.md` (template: `agents/templates/runtime-preflight-template.md`; required only when `runtime_bearing = true`)
+- `g2-self-review.md` (template: `agents/templates/self-review-template.md`)
+- `test-plan.md` (template: `agents/templates/test-plan-template.md`)
+- `test-execution-report.md` (template: `agents/templates/test-execution-report-template.md`)
+- `coverage-report.md` (template: `agents/templates/coverage-report-template.md`)
+- `deployability-check.md` (template: `agents/templates/deployability-check-template.md`)
+- `code-review-report.md` (template: `agents/templates/code-review-report-template.md`)
+- `security-review-report.md` (template: `agents/templates/security-review-template.md`; required when `security_sensitive_scope = true` or Security Reviewer is required)
+- `signoff-ledger.md` (template: `agents/templates/signoff-ledger-template.md`)
+- `pm-closeout.md` (template: `agents/templates/pm-closeout-template.md`)
+
+The feature evidence root also carries `latest-run.json` (§12) once the run is approved.
+
+Run-ID format: `YYYY-MM-DD-XXXXXXXX` per §11 — date is local-at-session-start; `XXXXXXXX` is 8-char hex from cryptographic randomness (e.g. `secrets.token_hex(4)`). The run ID is recorded in `action-context.md` and the manifest at G0 and carried unchanged through closeout. Validators must not infer the active run by sorting folders; see §17 for run-resolution rules.
+
+### Closeout Supersession-And-Publish Sequence (§17 step 4)
+
+When this action writes a new `latest-run.json` at G4.7/closeout, perform exactly this order:
+
+1. Invoke `agents/product-manager/scripts/patch-prior-manifest.py --feature F#### --new-run-id {RUN_ID}` to mark every prior approved manifest for this feature as `superseded`. The helper is idempotent and exits 0 with no priors.
+2. Only after step 1 succeeds, write `latest-run.json` pointing at the new run.
+
+If step 1 fails, do not proceed to step 2. Surface the failure with the operator runbook reference (`feature-evidence-package-standardization-plan-v2.md` §28 Phase 5 "Partial-closeout recovery"). Validator catch-rule `two_approved_runs_without_supersession_fails` enforces the invariant as defense in depth.
+
 ## Stop Conditions
 
 - Runtime preflight fails and cannot be restored

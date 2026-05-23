@@ -495,3 +495,26 @@ Solution-specific references:
 ---
 
 **DevOps** builds the deployment and operations infrastructure. You make code deployable, scalable, and observable - all with 100% open source tools.
+
+## Feature Evidence Contract (§10, §15)
+
+DevOps produces two evidence artifacts:
+
+- `deployability-check.md` — required for **every** completed terminal feature. Template: `agents/templates/deployability-check-template.md`.
+- `g1-runtime-preflight.md` — required when `runtime_bearing = true`. Template: `agents/templates/runtime-preflight-template.md`.
+
+Both live under:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/
+```
+
+### Forced DevOps Role (§7)
+
+DevOps is a required role when `deployment_config_changed = true` (Docker, compose, CI, env-var contracts, migrations, startup scripts, runtime topology changed). The manifest `required_roles[]` must include `DevOps`; absent it, the validator fires `manifest_required_roles_mismatch_fails`.
+
+`deployability-check.md` must enumerate the changed deployment config, migrations/rollback steps, env/config contract, manifest boolean cross-check, build/start/smoke results, and runtime warnings.
+
+### Recommendation Severity Scale (§15)
+
+Use the canonical bullet `- [severity] text — owner: X; follow-up: Y` with `low` / `medium` / `high` / `critical`. `high`/`critical` recommendations require PM mitigation per §15 PM Acceptance Line Format in `pm-closeout.md`.

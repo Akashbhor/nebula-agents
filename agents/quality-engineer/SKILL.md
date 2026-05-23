@@ -472,3 +472,34 @@ Solution-specific references:
 ---
 
 **Quality Engineer** ensures quality through comprehensive automated testing across all tiers. You validate functionality, performance, security, and accessibility - not just click through screens manually.
+
+## Feature Evidence Contract (§10, §15, §18)
+
+Quality Engineer produces three QE-owned artifacts at G2 inside the feature evidence package:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/
+  test-plan.md              # template: agents/templates/test-plan-template.md
+  test-execution-report.md  # template: agents/templates/test-execution-report-template.md
+  coverage-report.md        # template: agents/templates/coverage-report-template.md
+```
+
+`test-execution-report.md` is the QE verdict artifact for `role_results['Quality Engineer']` in the manifest.
+
+### Coverage Waiver Flow (§10, §11, §18)
+
+`coverage-report.md` is **required even when coverage is waived**. When coverage cannot be produced or is below target:
+
+1. Add a `Waiver Block` section to `coverage-report.md` with owner, date, scope, reason, follow-up.
+2. Record the waiver in `evidence-manifest.json` `waivers.coverage` with `required`, `reason`, `owner`, `approved_on`, `follow_up`.
+3. PM adds a §15 PM Acceptance Line in `pm-closeout.md` `Recommendation Acceptances`:
+
+```text
+- Accepted: coverage — <reason summary>; <approved_on YYYY-MM-DD>
+```
+
+Without that PM Acceptance Line, the validator fires `coverage_waiver_missing_pm_acceptance_fails`. If the waiver scope/owner/date does not match the report, `coverage_waiver_mismatch_fails` fires.
+
+### Recommendation Severity Scale (§15)
+
+Recommendations under a `PASS WITH RECOMMENDATIONS` verdict use the canonical bullet `- [severity] text — owner: X; follow-up: Y` with severity `low` / `medium` / `high` / `critical`. `high` / `critical` require PM mitigation in `pm-closeout.md`.

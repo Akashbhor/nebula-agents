@@ -26,6 +26,26 @@ Validation Complete
 - If implementation validation is in scope, stack-specific checks (compile, test, schema comparison) must run in application runtime containers (or CI jobs built from those container definitions).
 - Validation reports cite evidence from builder-side artifact inspection and (when applicable) application runtime execution.
 
+## Output Location (§14)
+
+This action produces three validation reports:
+
+- `pm-validation-report.md` (template: `agents/templates/pm-validation-report-template.md`)
+- `architect-validation-report.md` (template: `agents/templates/architect-validation-report-template.md`)
+- `implementation-validation-report.md` (template: `agents/templates/implementation-validation-report-template.md`)
+
+These reports live under the **non-feature/manual run base path** at:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/{RUN_ID}/
+```
+
+They are governed by the §8 base run evidence contract (`README.md`, `action-context.md`, `artifact-trace.md`, `gate-decisions.md`, `commands.log`, `lifecycle-gates.log`). They do **not** require an `evidence-manifest.json` (the feature-evidence profile is for `feature.md` / `build.md` closeout runs only).
+
+This action **must not** write into any feature evidence package — feature evidence is owned by `feature.md` / `build.md` per §17. When `validate.md` is invoked against a specific feature run, it reads that package read-only and emits findings into its own validate-action run folder.
+
+The `implementation-validation-report.md` cites rule IDs emitted by `validate-feature-evidence.py` (§22) and `validate-trackers.py`. Blocking severities (`high`/`critical`) on validate-action runs require an in-report follow-up commitment (owner + target date) because validate-action runs have no `pm-closeout.md` to carry a PM Acceptance Line.
+
 ---
 
 ## Execution Steps

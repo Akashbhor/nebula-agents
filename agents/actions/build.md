@@ -40,6 +40,21 @@ Build Complete
 - Stack-specific compile/test/security execution must run in application runtime containers (or CI jobs built from those container definitions).
 - Store executable evidence (test, lint, SAST, dependency scan outputs) under solution artifacts and use it in review gates.
 
+## Canonical Evidence Package For Archived Features
+
+When this build action archives a delivered feature at closeout, it produces the §10 canonical feature evidence package at:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/
+```
+
+The package contents match those produced by `agents/actions/feature.md` (see its "Canonical Evidence Package" section). The same §17 step 4 supersession-and-publish sequence applies at closeout:
+
+1. Invoke `agents/product-manager/scripts/patch-prior-manifest.py --feature F#### --new-run-id {RUN_ID}` to mark every prior approved manifest as `superseded`.
+2. Only after step 1 succeeds, write the new `latest-run.json` for this feature.
+
+If step 1 fails, do not proceed to step 2; surface the failure with the operator runbook reference (`feature-evidence-package-standardization-plan-v2.md` §28 Phase 5 "Partial-closeout recovery"). Build-action runs that do not archive a delivered feature use the §8 base run evidence shape only.
+
 ---
 
 ## Forbidden

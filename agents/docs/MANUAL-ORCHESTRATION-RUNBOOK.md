@@ -113,3 +113,23 @@ A manual run is complete only if:
 
 Before publishing a preview release, verify manual-run completeness with:
 - `agents/docs/PREVIEW-RELEASE-CHECKLIST.md`
+
+## Feature Evidence Contract Notes
+
+Manual / operator-initiated runs of `agents/actions/validate.md`, ad-hoc preflight checks, and release rehearsals follow the §8 base run evidence contract at:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/{RUN_ID}/
+```
+
+They produce the base files (`README.md`, `action-context.md`, `artifact-trace.md`, `gate-decisions.md`, `commands.log`, `lifecycle-gates.log`) but do **not** produce `evidence-manifest.json`. The feature-evidence profile (§9, §10) applies only to feature completion runs.
+
+The three validate-action reports (`pm-validation-report.md`, `architect-validation-report.md`, `implementation-validation-report.md`) live in the manual-run base path, not inside any feature evidence package. See §14 for their headings and the `agents/templates/*-validation-report-template.md` skeletons.
+
+Closeout actions for feature completion (`agents/actions/feature.md`, and `agents/actions/build.md` when it archives a delivered feature) always produce feature runs at:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/
+```
+
+and follow the §17 patch-then-publish supersession order — `patch-prior-manifest.py` first, then `latest-run.json` — never the reverse.
