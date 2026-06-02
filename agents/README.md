@@ -34,12 +34,15 @@ See the framework root `README.md` and `CONSUMER-CONTRACT.md` for the full consu
                               Actions compose Agents
                                         ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  AGENTS (Role-Based Specialists) — 11 Agents                                │
+│  AGENTS (Role-Based Specialists) — 12 Agents                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  Planning Phase (Phase A-B)                                                 │
 │  ├─ product-manager    │ Requirements, stories, acceptance criteria         │
 │  └─ architect          │ Design, data model, API contracts, patterns        │
+│                                                                              │
+│  Framework Compatibility                                                     │
+│  ├─ nebula-adapter     │ Stack/layout compatibility, router, framework docs │
 │                                                                              │
 │  Implementation Phase (Phase C)                                             │
 │  ├─ backend-developer  │ Backend services, domain logic ({PRODUCT_ROOT}/engine/)       │
@@ -86,7 +89,7 @@ See the framework root `README.md` and `CONSUMER-CONTRACT.md` for the full consu
 
 ─────────────────────────────────────────────────────────────────────────────
 
-  9 Actions · 11 Agents · 1 Source of Truth (BLUEPRINT.md)
+  9 Actions · 12 Agents · 1 Source of Truth (BLUEPRINT.md)
   SOLUTION-PATTERNS.md for institutional knowledge
   {PRODUCT_ROOT}/neuron/ for AI intelligence layer 🧠
 ```

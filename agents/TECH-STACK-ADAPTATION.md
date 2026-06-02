@@ -8,11 +8,12 @@ This framework is reusable across stacks. The agent roles and templates stay the
 2) Replace or add stack-specific reference guides under `agents/**/references/`.
 3) Update `agents/README.md` tech stack assumptions to match your stack.
 4) Update any scripts that are stack-specific (test runners, scaffolds).
-5) Keep templates and SKILL.md files unchanged.
+5) Keep existing templates unchanged; add new stack-specific or compatibility SKILL.md files only when introducing a new role or a small stack pack.
+6) Use the `nebula-adapter` role when the change is about framework routing, stack packs, or non-default product layouts.
 
 ## What Works Unchanged (Any Tech Stack)
 
-- All 11 agent `SKILL.md` files
+- All existing agent `SKILL.md` files, plus any explicitly added compatibility roles
 - All templates in `agents/templates/`
 - Product Manager, Architect, QA, Security, Code Reviewer roles
 - Generic references (clean architecture, testing best practices, UX, accessibility, etc.)
@@ -38,6 +39,13 @@ Replace or add:
 Keep unchanged:
 - `clean-architecture-guide.md` (generic)
 - `SKILL.md` (generic responsibilities)
+
+### When to Use Nebula Adapter
+
+Use the `nebula-adapter` role when the change is not product code but framework wiring:
+- adding or routing a new stack-specific guide
+- supporting a non-default product layout such as `portal/`, `api/`, or `services/`
+- updating framework docs so the stack/layout assumptions stay consistent
 
 ### Example: Vue.js Frontend
 

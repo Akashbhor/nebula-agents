@@ -102,6 +102,7 @@ Phase 3: Implementation (Generate Configs)
    - Find authentication configuration (authentik, Auth0, JWT)
    - Detect port configuration
    - Extract environment variable requirements
+   - If the product declares a non-default backend root, inspect that path instead of assuming `engine/`.
    - If the backend is Java / Spring Boot, prefer Maven or Gradle wrappers, Actuator health checks, and multi-stage JDK/JRE Dockerfiles.
 
 2. **Inspect `{PRODUCT_ROOT}/experience/` (Frontend):**
@@ -191,6 +192,7 @@ Phase 3: Implementation (Generate Configs)
    - `{PRODUCT_ROOT}/engine/Dockerfile` - Backend API (multi-stage build; JDK builder + slim JRE runtime for Java services)
    - `{PRODUCT_ROOT}/experience/Dockerfile` - Frontend SPA (node build + nginx runtime)
    - `{PRODUCT_ROOT}/neuron/Dockerfile` - AI layer (Python with dependencies)
+   - If the blueprint declares `portal/`, `api/`, or `services/`, generate Dockerfiles under the declared product folders and keep the compose wiring aligned.
    - Optimize each Dockerfile for the detected framework
 
 3. **Generate Environment Configuration:**

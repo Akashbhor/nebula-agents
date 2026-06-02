@@ -18,7 +18,7 @@ Contains:
 - framework documentation
 
 Does not contain:
-- generated application source code in `{PRODUCT_ROOT}/engine/`, `{PRODUCT_ROOT}/experience/`, or `{PRODUCT_ROOT}/neuron/`
+- generated application source code in `{PRODUCT_ROOT}/engine/`, `{PRODUCT_ROOT}/experience/`, `{PRODUCT_ROOT}/neuron/`, or any product-specific roots declared in `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md`
 - project databases
 - production secrets
 - long-lived application runtime state
@@ -47,7 +47,7 @@ Typical services:
 - database service
 - optional auth/cache/queue/worker services
 
-Common backend runtimes include ASP.NET Core and Java Spring Boot. The framework container should not assume one runtime; the product runtime image should match the detected stack.
+Common backend runtimes include ASP.NET Core and Java Spring Boot. The framework container should not assume one runtime or one folder layout; the product runtime image should match the detected stack and the declared roots in `BLUEPRINT.md` / `code-index.yaml`.
 
 Template:
 - Start from `agents/templates/docker-compose.app-template.yml` and customize per project.

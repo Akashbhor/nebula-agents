@@ -72,11 +72,19 @@ All paths relative to `agents/product-manager/`.
 
 | Task | References to Load |
 |------|--------------------|
-| Docker, Compose, containerization | `references/containerization-guide.md` |
+| Docker, Compose, containerization | `references/containerization-guide.md`, `references/java-spring-boot-containerization.md` |
 | CI/CD pipelines, deployment scripts | `references/code-patterns.md` |
 | General DevOps practices | `references/devops-best-practices.md` |
 
 All paths relative to `agents/devops/`.
+
+## Nebula Adapter (framework compatibility)
+
+| Task | References to Load |
+|------|--------------------|
+| Framework compatibility, stack/layout routing, non-default roots | `references/framework-compatibility-guide.md` |
+
+All paths relative to `agents/nebula-adapter/`.
 
 ## Backend Developer (701 lines → ~665 per task)
 

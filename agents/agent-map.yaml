@@ -61,6 +61,26 @@ agents:
       - {PRODUCT_ROOT}/planning-mds/features/**/README.md # feature ERD (Mermaid + ASCII), C4 component diagrams
       - {PRODUCT_ROOT}/planning-mds/features/**/STATUS.md # signoff role matrix, architecture signoff
 
+  nebula-adapter:
+    skill: agents/nebula-adapter/SKILL.md
+    condition: product uses a non-default layout or a new stack pack needs framework routing
+    reads:
+      - agents/TECH-STACK-ADAPTATION.md
+      - agents/ROUTER.md
+      - agents/docs/CONTAINER-STRATEGY.md
+      - agents/docs/AGENT-USE.md
+      - blueprint-setup/README.md
+      - agents/nebula-adapter/references/**
+      - agents/devops/references/java-spring-boot-containerization.md
+    writes:
+      - agents/README.md
+      - agents/ROUTER.md
+      - agents/TECH-STACK-ADAPTATION.md
+      - agents/docs/CONTAINER-STRATEGY.md
+      - agents/docs/AGENT-USE.md
+      - blueprint-setup/README.md
+      - agents/nebula-adapter/**
+
   backend-developer:
     skill: agents/backend-developer/SKILL.md
     reads:

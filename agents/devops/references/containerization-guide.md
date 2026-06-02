@@ -4,6 +4,8 @@
 
 **Audience:** DevOps agent, human DevOps engineers
 
+If the backend is Java / Spring Boot, also load `java-spring-boot-containerization.md` from this folder so the generated Dockerfiles and compose wiring follow JVM conventions instead of the framework's default .NET examples.
+
 ---
 
 ## Overview
