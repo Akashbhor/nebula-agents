@@ -29,6 +29,16 @@ Keep unchanged:
 - `clean-architecture-guide.md` (generic)
 - `SKILL.md` (generic responsibilities)
 
+### Example: Java / Spring Boot Backend
+
+Replace or add:
+- `agents/backend-developer/references/dotnet-best-practices.md` → `java-spring-boot-best-practices.md`
+- `agents/devops/references/containerization-guide.md` → add Java/Spring Boot detection and Dockerfile patterns
+
+Keep unchanged:
+- `clean-architecture-guide.md` (generic)
+- `SKILL.md` (generic responsibilities)
+
 ### Example: Vue.js Frontend
 
 Replace or add:
@@ -44,4 +54,5 @@ Keep unchanged:
 
 - Prefer adding new stack-specific reference files over renaming existing ones to avoid breaking links.
 - If you need a new stack, add a small “stack pack” under each role’s `references/` folder.
+- If the product uses a different frontend root name such as `portal/`, declare that in `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md` and bind it in `code-index.yaml` rather than hardcoding `experience/` in framework docs.
 - Keep solution-specific examples in `{PRODUCT_ROOT}/planning-mds/`, never in `agents/`.

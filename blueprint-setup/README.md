@@ -14,6 +14,7 @@ Run these from a session rooted in `nebula-agents` after `{PRODUCT_ROOT}` is res
 4) Create `{PRODUCT_ROOT}/planning-mds/examples/` with at least one persona, feature, and story example.
 5) Create `{PRODUCT_ROOT}/planning-mds/features/` (with `REGISTRY.md` and `F{NNNN}-{slug}/` folders) for actual requirements.
 6) Create `{PRODUCT_ROOT}/planning-mds/screens/` and `{PRODUCT_ROOT}/planning-mds/workflows/` for UI and state specs.
+7) Decide your implementation-layer folder names up front. The framework supports the original `engine/`, `experience/`, and `neuron/` names, but a Java product may use other names such as `portal/`, `api/`, or `services/` as long as `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md` and `code-index.yaml` declare them.
 
 ## Minimal Folder Scaffold
 

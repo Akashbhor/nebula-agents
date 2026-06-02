@@ -85,6 +85,7 @@ All paths relative to `agents/devops/`.
 | Domain entities, services, endpoints | `references/code-patterns.md` |
 | Clean architecture patterns | `references/clean-architecture-guide.md` |
 | .NET best practices | `references/dotnet-best-practices.md` |
+| Java / Spring Boot best practices | `references/java-spring-boot-best-practices.md` |
 | EF Core, database patterns | `references/ef-core-patterns.md` |
 
 All paths relative to `agents/backend-developer/`.

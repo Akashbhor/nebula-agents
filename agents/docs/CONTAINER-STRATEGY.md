@@ -47,6 +47,8 @@ Typical services:
 - database service
 - optional auth/cache/queue/worker services
 
+Common backend runtimes include ASP.NET Core and Java Spring Boot. The framework container should not assume one runtime; the product runtime image should match the detected stack.
+
 Template:
 - Start from `agents/templates/docker-compose.app-template.yml` and customize per project.
 - Use `agents/devops/SKILL.md` for application Dockerfile, compose, and deployment guidance.
@@ -72,3 +74,4 @@ Application Containers
 - The builder runtime should not be treated as a production app deployment container.
 - Stack-specific SDK/tooling belongs with the application runtime containers, not the builder base image.
 - Application container strategy is project-specific and evolves with architecture decisions in `{PRODUCT_ROOT}/planning-mds/`.
+- If the frontend root is named `portal/` instead of `experience/`, treat it as the same frontend runtime class and document the name in `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md` and `code-index.yaml`.

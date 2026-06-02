@@ -169,7 +169,7 @@ See **[actions/README.md](./actions/README.md)** for complete action flow docume
 
 ## Tech Stack Assumptions
 
-The framework is opinionated about delivery practices and provides stack-specific references in some agent guides. The default references assume a modern .NET + React + PostgreSQL stack, but the framework is stack-agnostic at the contract level. If your product uses a different stack, keep the agent roles and action contracts; replace the stack-specific reference guides and examples with ones that match your stack (see `agents/TECH-STACK-ADAPTATION.md`).
+The framework is opinionated about delivery practices and provides stack-specific references in some agent guides. The default examples still lean toward the original .NET + React + PostgreSQL product, but the framework is stack-agnostic at the contract level. If your product uses Java/Spring Boot, Node, Python, or another stack, keep the agent roles and action contracts; replace the stack-specific reference guides and examples with ones that match your stack (see `agents/TECH-STACK-ADAPTATION.md`).
 
 ---
 

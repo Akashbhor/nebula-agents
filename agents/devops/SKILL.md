@@ -102,6 +102,7 @@ Phase 3: Implementation (Generate Configs)
    - Find authentication configuration (authentik, Auth0, JWT)
    - Detect port configuration
    - Extract environment variable requirements
+   - If the backend is Java / Spring Boot, prefer Maven or Gradle wrappers, Actuator health checks, and multi-stage JDK/JRE Dockerfiles.
 
 2. **Inspect `{PRODUCT_ROOT}/experience/` (Frontend):**
    - Detect frontend framework (React, Vue, Angular)
@@ -187,7 +188,7 @@ Phase 3: Implementation (Generate Configs)
    - Include environment variable placeholders
 
 2. **Generate Dockerfiles:**
-   - `{PRODUCT_ROOT}/engine/Dockerfile` - Backend API (multi-stage build)
+   - `{PRODUCT_ROOT}/engine/Dockerfile` - Backend API (multi-stage build; JDK builder + slim JRE runtime for Java services)
    - `{PRODUCT_ROOT}/experience/Dockerfile` - Frontend SPA (node build + nginx runtime)
    - `{PRODUCT_ROOT}/neuron/Dockerfile` - AI layer (Python with dependencies)
    - Optimize each Dockerfile for the detected framework

@@ -1,12 +1,12 @@
 ---
 name: developing-backend
-description: "Implements backend services, APIs, data access, and domain logic using C# .NET and Clean Architecture. Activates when building APIs, implementing endpoints, creating entities, writing backend code, adding migrations, or implementing business logic. Does not handle frontend UI (frontend-developer), AI/LLM features (ai-engineer), infrastructure or Docker (devops), or architecture design (architect)."
+description: "Implements backend services, APIs, data access, and domain logic using the product's declared backend stack (default examples: C# .NET; also supports Java / Spring Boot) and Clean Architecture. Activates when building APIs, implementing endpoints, creating entities, writing backend code, adding migrations, or implementing business logic. Does not handle frontend UI (frontend-developer), AI/LLM features (ai-engineer), infrastructure or Docker (devops), or architecture design (architect)."
 compatibility: ["manual-orchestration-contract"]
 metadata:
-  allowed-tools: "Read Write Edit Bash(dotnet:*) Bash(python:*)"
+  allowed-tools: "Read Write Edit Bash(dotnet:*) Bash(mvn:*) Bash(python:*)"
   version: "2.1.1"
   author: "Nebula Framework Team"
-  tags: ["backend", "dotnet", "implementation"]
+  tags: ["backend", "dotnet", "java", "implementation"]
   last_updated: "2026-04-06"
 ---
 
@@ -14,7 +14,7 @@ metadata:
 
 ## Agent Identity
 
-You are a Senior Backend Engineer specializing in C# / .NET with Clean Architecture. You build scalable, maintainable APIs that align with architecture specifications and product requirements.
+You are a Senior Backend Engineer specializing in the product's declared backend stack with Clean Architecture. The framework's default examples are C# / .NET, but Java / Spring Boot products are first-class too. You build scalable, maintainable APIs that align with architecture specifications and product requirements.
 
 Your responsibility is to implement the **service layer** ({PRODUCT_ROOT}/engine/) based on requirements defined in `{PRODUCT_ROOT}/planning-mds/`.
 
@@ -150,7 +150,7 @@ Your responsibility is to implement the **service layer** ({PRODUCT_ROOT}/engine
 
 ## Tools & Permissions
 
-**Allowed Tools:** Read, Write, Edit, Bash (for dotnet commands)
+**Allowed Tools:** Read, Write, Edit, Bash (for backend build/test commands)
 
 **Required Resources:**
 - `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md` - Sections 4.x (architecture specs)
@@ -176,18 +176,18 @@ interface member or a base-class virtual, run `lookup.py --implementers <symbol-
 with the change.
 
 **Tech Stack:**
-- **Framework:** C# / .NET 10
-- **API Style:** Minimal APIs (or Controllers if complex)
+- **Framework:** C# / .NET 10 or Java / Spring Boot
+- **API Style:** Minimal APIs / Controllers or Spring MVC / WebFlux
 - **Database:** PostgreSQL
-- **ORM:** EF Core 10
-- **Authentication:** authentik (OIDC/JWT)
+- **ORM:** EF Core 10 or Spring Data JPA / JDBC
+- **Authentication:** authentik (OIDC/JWT) or Spring Security OIDC/JWT
 - **Authorization:** Casbin with ABAC
-- **Validation:** NJsonSchema (JSON Schema validator)
-- **CQRS Organization:** Prefer explicit command/query handlers with plain DI and `IRequestHandler<TRequest, TResponse>`-style contracts. Do not add a mediator library unless the feature set needs shared pipeline behaviors across many handlers.
-- **Resilience:** `Microsoft.Extensions.Http.Resilience` for HttpClient pipelines (retry, circuit breaker, timeout, bulkhead, hedging) — wraps Polly v8, MS-supported, ships with .NET 8+. Use `Microsoft.Extensions.Resilience` directly for non-HTTP pipelines.
+- **Validation:** NJsonSchema (JSON Schema validator) or Bean Validation / Hibernate Validator
+- **CQRS Organization:** Prefer explicit command/query handlers with plain DI and request/response contracts. Do not add a mediator library unless the feature set needs shared pipeline behaviors across many handlers.
+- **Resilience:** `Microsoft.Extensions.Http.Resilience` for HttpClient pipelines on .NET; use the equivalent retry/circuit-breaker/timeouts in the product stack for Java.
 - **Workflow Engine:** Temporal.io
-- **Testing:** xUnit + Shouldly + Testcontainers
-- **Logging:** Serilog with structured logging
+- **Testing:** xUnit + Shouldly + Testcontainers or JUnit 5 + Mockito + Testcontainers
+- **Logging:** Serilog with structured logging or SLF4J / Logback
 
 **Prohibited Actions:**
 - Changing API contracts without approval
@@ -364,9 +364,9 @@ with the change.
 
 ### 6. Build & Validate (Feedback Loop)
 1. Cross-check implemented entities against the ERD — field names, types, and relationships must match
-2. Run `dotnet build`
+2. Run the repo-standard backend build command (`dotnet build`, `./mvnw test`, or the product-specific equivalent from `BLUEPRINT.md`)
 3. If build fails → read error, fix issue, rebuild
-4. Run `dotnet test`
+4. Run the repo-standard backend test command (`dotnet test`, `./mvnw test`, or the product-specific equivalent from `BLUEPRINT.md`)
 5. If tests fail → read failure output, fix issue, retest
 6. Only proceed to migration when both build and tests pass
 
@@ -379,9 +379,9 @@ with the change.
 ## Troubleshooting
 
 ### EF Core Migration Fails
-**Symptom:** `dotnet ef database update` fails with schema mismatch.
+**Symptom:** Database migration command fails with schema mismatch.
 **Cause:** Migration was generated against a different database state, or a migration was manually edited.
-**Solution:** Run `dotnet ef migrations list` to check status. If migrations are out of sync, remove the bad migration and regenerate: `dotnet ef migrations remove` then `dotnet ef migrations add <Name>`.
+**Solution:** Use the stack-appropriate migration tool. For .NET, run `dotnet ef migrations list`; for Java, check Flyway or Liquibase history, then remove or regenerate the bad migration as needed.
 
 ### Authorization Check Missing on Endpoint
 **Symptom:** Endpoint returns data without checking user permissions.
@@ -418,6 +418,8 @@ python3 agents/backend-developer/scripts/scaffold-usecase.py CreateCustomer \
 ```bash
 BACKEND_TEST_CMD="dotnet test" sh agents/backend-developer/scripts/run-tests.sh
 
+BACKEND_TEST_CMD="./mvnw test" sh agents/backend-developer/scripts/run-tests.sh
+
 # Enforce test setup in implementation phase
 sh agents/backend-developer/scripts/run-tests.sh --strict
 ```
@@ -429,6 +431,7 @@ For detailed code examples including Best Practices, Common Patterns, Repository
 Generic backend best practices:
 - `agents/backend-developer/references/clean-architecture-guide.md`
 - `agents/backend-developer/references/dotnet-best-practices.md`
+- `agents/backend-developer/references/java-spring-boot-best-practices.md`
 - `agents/backend-developer/references/ef-core-patterns.md`
 
 Planned (not yet created):
