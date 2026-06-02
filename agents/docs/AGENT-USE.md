@@ -142,57 +142,24 @@ artifacts when details or verification matter.
 
 ### KG CLI Tools
 
-All tools are agent-agnostic and work from any terminal or agent runtime.
+All KG tools are agent-agnostic and work from any terminal. The full CLI
+reference, mental model, lifecycle triggers, and failure modes live in
+**`agents/docs/KNOWLEDGE-GRAPH.md`**.
 
-| Command | Purpose |
-|---------|---------|
-| `python3 {PRODUCT_ROOT}/scripts/kg/lookup.py <id>` | Materialize first-pass ontology scope for a feature or story ID. Use `--tier`, `--fields`, and `--allow-missing` to control retrieval budget and greenfield fallback. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/lookup.py --file <path>` | Reverse lookup from a code file to ontology nodes |
-| `python3 {PRODUCT_ROOT}/scripts/kg/hint.py <path>` | Quick KG routing hint before searching — outputs matched nodes, features, stories, and Casbin rules for a file or directory. Use `--json` for structured output, plus `--run-id` and `--telemetry-file` for correlation. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/blast.py <node-id>` | Compute blast radius for a canonical node — all impacted features, stories, code bindings, Casbin rules, and resolved files. Supports `--run-id` and `--telemetry-file`. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/blast.py --file <path>` | Blast radius starting from a code file (reverse-binds to nodes first) |
-| `python3 {PRODUCT_ROOT}/scripts/kg/blast.py <feature-id>` | Blast radius for a feature by expanding its canonical node references. Use `--compact` for summary only. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/validate.py` | Validate KG integrity (IDs, references, paths, coverage) |
-| `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-drift` | Run drift checks: Casbin policy cross-check (policy_rule nodes vs policy.csv resource/action/role alignment). Add `--memory-dir <path>` to scan an external agent memory directory for stale repo-path references. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --write-coverage-report` | Refresh the committed `coverage-report.yaml` artifact |
-| `python3 agents/scripts/validate_templates.py` | Validate prompt templates against the action-contract sections in `plan.md` and `feature.md` (framework-owned) |
-| `python3 {PRODUCT_ROOT}/scripts/kg/eval.py --since <ref>` | Score retrieval quality offline against historical closeout commits and telemetry |
-| `python3 {PRODUCT_ROOT}/scripts/kg/telemetry_rotate.py {PRODUCT_ROOT}/.kg-state/telemetry.jsonl` | Rotate and prune local retrieval telemetry JSONL files (state lives under the product repo since it tracks product KG retrieval) |
-| `python3 {PRODUCT_ROOT}/scripts/kg/pagerank.py --top N` | Compute PageRank over the knowledge graph to surface hub nodes. Use `--type entity` to filter by node type. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/cochange.py --top N` | Discover git co-change edges between canonical nodes. Use `--coverage-gaps` to find unbound files that co-change with bound files. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/workstate.py --state-file <path> init --role <role> --scope <id> --run-id <uuid>` | Initialize a session working-state file for compaction resilience and correlation. Add `--mode <name>` when applicable. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/workstate.py --state-file <path> decision "<summary>" --topic <slug>` | Record a decision to working state. Use `--files`, `--rationale`, and `--supersedes` for detail and current-view supersession. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/workstate.py --state-file <path> escalate "<reason>"` | Record an explicit insufficient-context escalation, including raw artifacts opened during escalation. |
-| `python3 {PRODUCT_ROOT}/scripts/kg/workstate.py --state-file <path> dump --compact` | Dump compact working state for post-compaction context recovery |
-| `python3 {PRODUCT_ROOT}/scripts/kg/workstate.py --state-file <path> dump --current-view` | Dump the current-view projection with superseded topic decisions filtered out |
+Most-common session invocations:
 
-### When to Use Each Tool
+| When | Command |
+|------|---------|
+| Before any code search | `python3 {PRODUCT_ROOT}/scripts/kg/hint.py <path>` |
+| Starting feature work | `python3 {PRODUCT_ROOT}/scripts/kg/lookup.py <feature-id>` |
+| Before editing shared semantics | `python3 {PRODUCT_ROOT}/scripts/kg/blast.py <node-or-file>` |
+| Long session start | `python3 {PRODUCT_ROOT}/scripts/kg/workstate.py --state-file <path> init --role <role> --scope <id> --run-id <uuid>` |
+| Post-compaction recovery | `python3 {PRODUCT_ROOT}/scripts/kg/workstate.py --state-file <path> dump --compact` |
+| Framework prompt-template check | `python3 agents/scripts/validate_templates.py` |
 
-- **Before searching code**: run `hint.py <path>` to get KG context. This
-  replaces blind Glob/Grep with ontology-routed exploration.
-- **Before editing a shared entity, workflow, or schema**: run
-  `blast.py <node-id>` to see what features, Casbin rules, and code files
-  would be impacted.
-- **When planning a feature implementation**: run `lookup.py <feature-id>` to
-  materialize a first-pass ontology scope as a starting context.
-- **After ontology changes**: run `validate.py --write-coverage-report` to
-  refresh freshness tracking, and `validate.py --check-drift` to catch
-  cross-artifact misalignment.
-
-- **During long sessions**: run `workstate.py init` at the start, then
-  `workstate.py decision` after key decisions and `workstate.py touch` after
-  significant file changes.  After context compaction, run
-  `workstate.py dump --compact` to recover structured session state instead
-  of re-deriving it from compressed conversation history.
-- **When assessing architectural risk**: run `pagerank.py --type entity` to
-  find hub entities that need the most ABAC and test coverage attention.
-- **When checking for undeclared dependencies**: run `cochange.py --coverage-gaps`
-  to find files that frequently co-change with bound files but have no
-  code-index binding.
-
-Agent-specific hook adapters (e.g., `.claude/settings.json` for Claude Code)
-can wire `hint.py` into their pre-search hooks, but the tools work
-standalone without any hook configuration.
+Agent-specific hook adapters (e.g., `.claude/settings.json` for Claude
+Code) can wire `hint.py` into pre-search hooks, but the tools work
+standalone.
 
 ### Action Template
 
@@ -212,13 +179,18 @@ Execution notes:
 
 ## Action Prompt Templates
 
-Use the prompt templates in `agents/templates/prompts/` as the canonical
-operator starting points for `plan` and `feature` action sessions:
+Use the prompt templates in `agents/templates/prompts/` as canonical operator
+starting points for action sessions. The evidence-contract variants are the
+preferred prompts when the action must produce or review formal evidence.
 
 - `agents/templates/prompts/plan-automation-safe.md`
 - `agents/templates/prompts/plan-operator-friendly.md`
 - `agents/templates/prompts/feature-automation-safe.md`
 - `agents/templates/prompts/feature-operator-friendly.md`
+- `agents/templates/prompts/evidence-contract/plan-review-automation-safe.md`
+- `agents/templates/prompts/evidence-contract/plan-review-operator-friendly.md`
+- `agents/templates/prompts/evidence-contract/feature-review-automation-safe.md`
+- `agents/templates/prompts/evidence-contract/feature-review-operator-friendly.md`
 
 These templates encode the current retrieval budget, gate IDs, required tool
 invocations, and exit-validation order. Keep them aligned with the action docs
@@ -242,23 +214,19 @@ Use these clauses when they apply:
 
 ## Ontology Ownership
 
-- Architect owns the canonical shared layer in `{PRODUCT_ROOT}/planning-mds/knowledge-graph/`
-  for entities, workflows, workflow states, capabilities, schemas, API
-  contracts, and ADR links.
-- Product Manager owns feature/story/persona mappings and keeps feature and
-  story links current.
-- Implementation agents should not silently redefine canonical solution
-  semantics. When they discover drift, they should flag it and route the update
-  back to the Architect or Product Manager unless explicitly acting in that
-  role.
-- Code Reviewer and Security should treat unresolved ontology drift as a
-  cross-artifact consistency issue when shared semantics changed.
+Ownership rules (architect owns canonical shared layer; PM owns feature/
+story/persona mappings; implementation agents flag drift rather than
+silently redefine; reviewers treat unresolved drift as a consistency
+issue) are documented in `agents/docs/KNOWLEDGE-GRAPH.md` § File Inventory
+and § Lifecycle.
 
 ## STATUS.md Evidence Semantics
 
 `STATUS.md` evidence rows are append-only audit history. To query "the current
 verdict per (story, role)," compute it as a view over the table (latest row per
-key), not by mutating or removing prior rows.
+key), not by mutating or removing prior rows. The full signoff contract
+(required columns, baseline/forced roles, evidence-path rules) lives in
+`agents/docs/AGENT-OPS.md` → STATUS.md signoff.
 
 ## Agent Quick Reference
 
@@ -402,8 +370,10 @@ When done:
 |--------|----------|----------|----------------|
 | `init` | starting a new repo or bootstrapping framework files | Product Manager | `Run the init action defined in agents/actions/init.md for this repository.` |
 | `plan` | moving from idea to approved product and architecture specs | Product Manager -> Architect | `Run the plan action defined in agents/actions/plan.md for <feature or project>.` |
+| `plan-review` | independently checking whether completed planning is ready to build | Product Manager + Architect + Code Reviewer | `Run the plan-review action defined in agents/actions/plan-review.md for <feature or project>.` |
 | `build` | implementing a larger approved scope across the stack | Architect -> implementation agents -> reviews | `Run the build action defined in agents/actions/build.md for the approved scope in <feature folders>.` |
 | `feature` | shipping one vertical slice end to end | Architect -> implementation agents -> parallel reviews | `Run the feature action defined in agents/actions/feature.md for <feature folder>.` |
+| `feature-review` | independently checking whether a completed feature is truly done | PM + Architect + QE + Code Reviewer + Security (+ DevOps when needed) | `Run the feature-review action defined in agents/actions/feature-review.md for <feature folder>.` |
 | `review` | getting code-quality and security review on changed work | Code Reviewer + Security | `Run the review action defined in agents/actions/review.md for the current diff and affected feature folders.` |
 | `validate` | checking planning, architecture, and implementation alignment | Product Manager + Architect | `Run the validate action defined in agents/actions/validate.md for <feature or repo scope>.` |
 | `test` | expanding or executing automated test coverage | Quality Engineer | `Run the test action defined in agents/actions/test.md for <feature or changed components>.` |
@@ -424,3 +394,26 @@ When done:
 3. Keep prompts explicit about files, outputs, and validation.
 4. Treat `STATUS.md` and tracker updates as part of the work, not optional cleanup.
 5. For implementation work, prefer the feature folder and `feature-assembly-plan.md` over ad hoc verbal summaries.
+
+## Feature Evidence Contract Quick Reference
+
+Full contract — package shape, gate timeline, manifest, telemetry,
+verdicts, validation, eligibility, waivers — lives in
+**`agents/docs/AGENT-OPS.md`**. This is the per-role quick reference only.
+
+Roles producing feature-evidence artifacts write into the canonical feature run folder:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{RUN_ID}/
+```
+
+| Role | Required artifact(s) at the canonical run folder | Verdict artifact |
+|------|--------------------------------------------------|------------------|
+| Architect | `g0-assembly-plan-validation.md` (when required by STATUS.md) | same |
+| Quality Engineer | `test-plan.md`, `test-execution-report.md`, `coverage-report.md` | `test-execution-report.md` |
+| DevOps | `deployability-check.md`; `g1-runtime-preflight.md` when `runtime_bearing = true` | `deployability-check.md` |
+| Code Reviewer | `code-review-report.md` | same |
+| Security Reviewer | `security-review-report.md` (when forced or required) | same |
+| Product Manager | `signoff-ledger.md`, `pm-closeout.md`, and the feature-index `latest-run.json` | n/a (PM closeout is a gate, not a role-results row by default) |
+
+Recommendation severity is `low` / `medium` / `high` / `critical`; `high`/`critical` require a PM Acceptance Line in `pm-closeout.md` (see AGENT-OPS.md → Verdicts & Recommendations). `agents/actions/validate.md` runs write three validation reports into the **base run** path, not a feature package (see AGENT-OPS.md → The Gate Timeline).

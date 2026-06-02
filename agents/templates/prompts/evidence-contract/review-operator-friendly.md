@@ -1,16 +1,34 @@
-Before starting, resolve `{PRODUCT_ROOT}` per `agents/docs/AGENT-USE.md` → Session Setup and echo its absolute path on your first turn. This prompt encodes the review action under `feature-evidence-package-standardization-plan-v2.md` (effective `2026-05-19`). Review runs in two modes: feature-scoped (review reports land in an existing feature run folder driven by `feature.md` G3) or standalone (review reports land in a base run evidence folder, do NOT satisfy any feature evidence requirement).
+This prompt encodes the review action under `feature-evidence-package-standardization-plan-v2.md` (effective `2026-05-19`). Review runs in two modes: feature-scoped (review reports land in an existing feature run folder driven by `feature.md` G3) or standalone (review reports land in a base run evidence folder, do NOT satisfy any feature evidence requirement).
+
+REQUIRED INPUTS (you must set):
+- `MODE={feature-scoped | standalone}`
+- `SCOPE={feature | path-set | codebase}`
+- When `MODE=feature-scoped`, also REQUIRED: `FEATURE_ID={F####}` and `RUN_ID={parent feature run ID}`
+
+OPTIONAL INPUTS (defaults apply when omitted):
+- `PATHS=[path, path, ...]` — required only when `SCOPE=path-set`
+- `PRODUCT_ROOT=` — default: sister-repo per `agents/docs/AGENT-USE.md` → Session Setup; override only for non-standard layouts
+
+AUTO-RESOLVED (do not set; SESSION_SETUP and the orchestrator compute these):
+- `FEATURE_SLUG` — kebab-case slug for `{FEATURE_ID}` from `REGISTRY.md` (only when `MODE=feature-scoped`)
+- `FEATURE_PATH` — `{PRODUCT_ROOT}/planning-mds/features/{FEATURE_ID}-{FEATURE_SLUG}` (only when `MODE=feature-scoped`)
+- `OUTPUT_FOLDER` — `{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{RUN_ID}` (only when `MODE=feature-scoped`)
+- `REVIEW_RUN_ID` — `YYYY-MM-DD-{secrets.token_hex(4)}` generated once at session start (only when `MODE=standalone`)
+- `REVIEW_RUN_FOLDER` — `{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{REVIEW_RUN_ID}` (only when `MODE=standalone`)
+
+Echo the resolved absolute `{PRODUCT_ROOT}` path on your first turn before any shell command.
 
 Generate any run IDs with the contract format `YYYY-MM-DD-[a-z0-9]{8}` (suffix from `python3 -c "import secrets; print(secrets.token_hex(4))"`). Do not use `uuid4`. Do not regenerate after session start.
 
 Decide MODE upfront:
-- `feature-scoped` — pass `FEATURE_ID={F####}` and `RUN_ID={parent feature run ID}`. `OUTPUT_FOLDER` is `{PRODUCT_ROOT}/planning-mds/operations/evidence/{FEATURE_ID}-{slug}/{RUN_ID}/` and MUST already exist (created by `feature.md` at G0). Do NOT create a new run folder.
-- `standalone` — generate `{REVIEW_RUN_ID}` and create `REVIEW_RUN_FOLDER` at `{PRODUCT_ROOT}/planning-mds/operations/evidence/{REVIEW_RUN_ID}/`. Initialize base run files (`README.md`, `action-context.md`, `artifact-trace.md`, `gate-decisions.md`, `commands.log`, `lifecycle-gates.log`) per §8.
+- `feature-scoped` — pass `FEATURE_ID`, `FEATURE_SLUG`, and `RUN_ID`. `OUTPUT_FOLDER` MUST already exist (created by `feature.md` at G0). Do NOT create a new run folder.
+- `standalone` — generate `{REVIEW_RUN_ID}` and create `REVIEW_RUN_FOLDER`. Initialize base run files (`README.md`, `action-context.md`, `artifact-trace.md`, `gate-decisions.md`, `commands.log`, `lifecycle-gates.log`) per §8.
 
 Run `agents/actions/review.md` with `MODE`, `SCOPE={feature | path-set | codebase}`, and `PATHS=[...]` for path-set scope. For feature-scoped, the feature run folder must exist and G0 must have passed; for standalone, just initialize the base run folder.
 
 Load context in this order: `agents/ROUTER.md` → `agents/agent-map.yaml` → `agents/docs/AGENT-USE.md` → `agents/actions/review.md`; for feature-scoped, also load `{FEATURE_PATH}/feature-assembly-plan.md`, `{FEATURE_PATH}/STATUS.md`, and `{OUTPUT_FOLDER}/evidence-manifest.json`. Load `agents/code-reviewer/SKILL.md` and (when security is in scope) `agents/security/SKILL.md`.
 
-Don't generate run IDs with `uuid4`. Don't write role reports outside the chosen output folder. In feature-scoped mode, don't create a new `{FEATURE_ID}-{slug}` run folder during review — use the existing one. Don't mix feature-scoped and standalone outputs in one session. Don't skip security review when the feature manifest carries `security_sensitive_scope=true` (rule `security_required_missing_report_fails`).
+Don't generate run IDs with `uuid4`. Don't write role reports outside the chosen output folder. In feature-scoped mode, don't create a new run folder during review — use the existing `OUTPUT_FOLDER`. Don't mix feature-scoped and standalone outputs in one session. Don't skip security review when the feature manifest carries `security_sensitive_scope=true` (rule `security_required_missing_report_fails`).
 
 Append every shell command to `commands.log` per the §13 JSONL schema. Compile/test/lint commands run inside runtime containers and their artifact paths are recorded in `commands.log`.
 
@@ -40,5 +58,5 @@ Close the run:
 
 Resolve conflicts like this:
 - code review APPROVED but security review FAIL → blocking; resolve in same change set or escalate
-- review reports disagree with manifest `role_results` → fix the manifest at G4.5; reports are authoritative
+- review reports disagree with manifest `role_results` → fix the manifest at G5; reports are authoritative
 - review attempted on a feature whose G2 has not yet passed → halt; out of sequence

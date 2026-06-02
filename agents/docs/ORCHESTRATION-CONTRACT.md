@@ -498,12 +498,15 @@ def retry_with_backoff(agent_fn, max_retries=3):
 
 ## 8. Auditability
 
-- Keep execution traceable by referencing:
-  - which action was run
-  - which roles were activated
-  - which artifacts were read/written
-  - which approval decisions were made
-- In manual mode, store evidence for each run using `agents/docs/MANUAL-ORCHESTRATION-RUNBOOK.md`.
+Every orchestrated run must be traceable: which action ran, which roles
+were activated, which artifacts were read/written, and which gate decisions
+were made. That trace is captured as a structured **evidence package**.
+
+The evidence/telemetry contract — package shape, the gate timeline of who
+writes what when, the manifest, the `commands.log` telemetry schema,
+verdicts, stage-aware validation, eligibility, and waivers — is defined in
+**`agents/docs/AGENT-OPS.md`** (single source of truth). In manual mode,
+follow `agents/docs/MANUAL-ORCHESTRATION-RUNBOOK.md` for the run procedure.
 
 ## 9. Runtime Independence
 
@@ -528,8 +531,10 @@ At minimum, it must satisfy the following action-level I/O requirements:
 |---|---|---|---|---|
 | `init` | `agents/actions/init.md` | Project name, domain context, target users, initial entities | `{PRODUCT_ROOT}/planning-mds/` scaffold, `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md`, `{PRODUCT_ROOT}/planning-mds/domain/glossary.md`, `{PRODUCT_ROOT}/planning-mds/architecture/SOLUTION-PATTERNS.md` | No explicit approval gate; validate required artifacts exist |
 | `plan` | `agents/actions/plan.md` | Existing `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md`, domain/context inputs, user clarifications | Updated `BLUEPRINT.md`, planning artifacts (stories/personas/features/screens), architecture specs and contracts per action | Enforce all gates defined in action (including requirement and architecture approvals) |
+| `plan-review` | `agents/actions/plan-review.md` | Completed plan artifacts, trackers, KG bindings, architecture/API/security references | Read-only plan readiness findings and `plan-review-report.md` | Enforce readiness decision: critical findings mean not ready to build |
 | `build` | `agents/actions/build.md` | Approved planning + architecture artifacts, stories, API and pattern references | Production code, tests, deployment configs, build/review summaries | Enforce severity-based review/security gates (no critical override) and route on user decision |
 | `feature` | `agents/actions/feature.md` | Feature-scoped stories + architecture/API context | Feature-scoped backend/frontend/AI changes and tests, feature review output | Enforce severity-based feature gate outcome (critical blocks approval) |
+| `feature-review` | `agents/actions/feature-review.md` | Completed feature, feature evidence run, changed-file set, runtime/test/security evidence | Read-only completion findings and `feature-review-report.md` | Enforce done decision: failed evidence validation or critical findings mean not done |
 | `review` | `agents/actions/review.md` | Candidate implementation artifacts and applicable planning/architecture references | Code-quality and security review findings with remediation expectations | Enforce severity-based review gate outcome (critical blocks approval) |
 | `validate` | `agents/actions/validate.md` | `{PRODUCT_ROOT}/planning-mds/` artifacts and consistency context | Validation report, gaps, and corrective actions | No skip of required validation checklist steps |
 | `test` | `agents/actions/test.md` | Implemented code, story acceptance criteria, test strategy inputs | Test plan, executed results, defect reports, quality summary | Enforce stop/continue behavior specified by quality thresholds |

@@ -195,3 +195,58 @@ See `TECH-STACK-ADAPTATION.md` (when present) for stack-swap walkthroughs.
 - Which AI tool, orchestrator, or IDE drives the session — the framework is deliberately plain markdown and any tool can consume it
 - Choice of version control host, CI system, or artifact registry
 - Product-specific security, privacy, or compliance requirements — those live in product repos and product CI
+
+## Feature Evidence Contract
+
+Effective `2026-05-19`. Replaces the legacy `feature` artifact row. See `feature-evidence-package-standardization-plan-v2.md` for the normative contract.
+
+### Base Run Evidence (§8)
+
+Every orchestrated run produces a base evidence package. Non-feature/manual runs (e.g. `agents/actions/validate.md`) use the base path:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{RUN_ID}/
+  README.md
+  action-context.md
+  artifact-trace.md
+  gate-decisions.md
+  commands.log
+  lifecycle-gates.log
+```
+
+### Feature Completion Profile (§9, §10)
+
+Feature completion runs (`agents/actions/feature.md` and `agents/actions/build.md` when archiving a delivered feature) write to the feature profile path with the full §10 artifact matrix:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{RUN_ID}/
+  <base files above>
+  evidence-manifest.json
+  feature-action-execution.md
+  g0-assembly-plan-validation.md
+  g1-runtime-preflight.md         # when runtime_bearing = true
+  g2-self-review.md
+  test-plan.md
+  test-execution-report.md
+  coverage-report.md
+  deployability-check.md
+  code-review-report.md
+  security-review-report.md       # when security-sensitive
+  signoff-ledger.md
+  pm-closeout.md
+  artifacts/{coverage,diffs,test-results,security,screenshots}/
+
+{PRODUCT_ROOT}/planning-mds/operations/evidence/features/F####-{slug}/
+  latest-run.json                 # pointer to approved run + manifest
+```
+
+### Global Frontend Lanes (§20)
+
+`planning-mds/operations/evidence/frontend-quality/` and `planning-mds/operations/evidence/frontend-ux/` remain valid global lanes. They may be referenced from feature evidence (`global_evidence_refs` in the manifest) but do not substitute for feature-level role reports.
+
+### Validators
+
+- `agents/product-manager/scripts/validate-feature-evidence.py` — feature evidence package consistency (§22).
+- `agents/product-manager/scripts/validate-trackers.py` — tracker/registry consistency, calls feature-evidence at `--stage G6` after tracker validation (§22 integration).
+- `agents/product-manager/scripts/patch-prior-manifest.py` — closeout supersession helper called before writing `latest-run.json` (§17 step 4, §24).
+- `agents/scripts/validate_templates.py` — template/action alignment, including the §24 `tpl_*` rules.

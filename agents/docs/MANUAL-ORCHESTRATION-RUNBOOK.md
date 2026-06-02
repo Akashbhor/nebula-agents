@@ -33,13 +33,17 @@ For every action execution, create a run ID and evidence folder:
 
 ```bash
 RUN_ID=<action>-$(date -u +%Y%m%d-%H%M%S)
-mkdir -p {PRODUCT_ROOT}/planning-mds/operations/evidence/$RUN_ID
+mkdir -p {PRODUCT_ROOT}/planning-mds/operations/evidence/runs/$RUN_ID
 ```
 
 Store all run evidence under:
-- `{PRODUCT_ROOT}/planning-mds/operations/evidence/<RUN_ID>/`
+- `{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/<RUN_ID>/`
 
 ## Required Evidence Files
+
+The authoritative artifact list, required headings, and schemas are defined
+in `agents/docs/AGENT-OPS.md` (single source of truth). The list below is
+the operator checklist; AGENT-OPS.md wins on any heading/schema detail.
 
 Every run must include these files:
 
@@ -113,3 +117,25 @@ A manual run is complete only if:
 
 Before publishing a preview release, verify manual-run completeness with:
 - `agents/docs/PREVIEW-RELEASE-CHECKLIST.md`
+
+## Feature Evidence Contract Notes
+
+Which profile a run uses (base run vs. feature package), the full artifact
+set, and the validation stages are defined in `agents/docs/AGENT-OPS.md`.
+The operator-relevant points:
+
+- Manual / operator-initiated runs (`agents/actions/validate.md`, ad-hoc
+  preflight, release rehearsals) use the **base run** profile at
+  `{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{RUN_ID}/` — the six base
+  files, no `evidence-manifest.json`. The three validate-action reports
+  (`pm-validation-report.md`, `architect-validation-report.md`,
+  `implementation-validation-report.md`) live here, not in a feature package.
+- Feature completion closeouts (`agents/actions/feature.md`, and
+  `agents/actions/build.md` when it archives a delivered feature) produce the
+  full **feature package** at
+  `{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{RUN_ID}/`; the
+  feature index pointer is
+  `{PRODUCT_ROOT}/planning-mds/operations/evidence/features/F####-{slug}/latest-run.json`.
+- At closeout, the supersession order is mandatory: run
+  `patch-prior-manifest.py` **first**, then write `latest-run.json` — never
+  the reverse (see AGENT-OPS.md → The Gate Timeline).

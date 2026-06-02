@@ -2,30 +2,38 @@ ACTION: agents/actions/validate.md
 CONTRACT: feature-evidence-package-standardization-plan-v2.md (effective 2026-05-19)
 CONTRACT SCOPE: Validate is a parallel-agent validation action. Product Manager validates requirements and Architect validates architecture; when implementation is in scope, they additionally invoke the framework validators (validate-feature-evidence.py, validate-trackers.py, kg/validate.py, generate-story-index.py, validate_templates.py) as tools. The action produces a base run evidence package per §8 with per-agent validation reports; it does NOT write into any feature evidence package.
 
+REQUIRED INPUTS (operator must set before SESSION_SETUP):
+  VALIDATION_SCOPE:     {requirements | architecture | implementation | all}
+
+OPTIONAL INPUTS (defaults apply when omitted):
+  FEATURE_ID:           {F####}                              # narrows implementation validation to a single feature
+  STAGE:                {G0|G1|G2|G3|G5|G6|G8|closeout}  # default: closeout (only meaningful when FEATURE_ID is set)
+  RUN_ID:               {YYYY-MM-DD-[a-z0-9]{8}}             # parent feature run ID; required when STAGE is G0..G5
+  EFFECTIVE_DATE:       {YYYY-MM-DD}                         # default: 2026-05-19 (framework default); earlier values rejected per §22
+  PRODUCT_ROOT:         absolute product repo root           # default: sister-repo per agents/docs/AGENT-USE.md
+
+AUTO-RESOLVED (do not set; SESSION_SETUP and the orchestrator compute these):
+  VALIDATE_RUN_ID       = YYYY-MM-DD-{secrets.token_hex(4)} generated at SESSION_SETUP
+  VALIDATE_RUN_FOLDER   = {PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{VALIDATE_RUN_ID}
+  FEATURE_SLUG          = kebab-case slug for {FEATURE_ID} from REGISTRY.md (only when FEATURE_ID is set)
+  FEATURE_INDEX_ROOT         = {PRODUCT_ROOT}/planning-mds/operations/evidence/features/{FEATURE_ID}-{FEATURE_SLUG} (only when FEATURE_ID is set)
+
 SESSION_SETUP:
 - Resolve {PRODUCT_ROOT} per agents/docs/AGENT-USE.md → Session Setup
 - Echo resolved absolute {PRODUCT_ROOT}
 - Generate {VALIDATE_RUN_ID} once at session start using contract format YYYY-MM-DD-[a-z0-9]{8} (suffix from `secrets.token_hex(4)`). DO NOT use uuid4.
 - Create base run folder per §8:
-    VALIDATE_RUN_FOLDER = {PRODUCT_ROOT}/planning-mds/operations/evidence/{VALIDATE_RUN_ID}/
+    VALIDATE_RUN_FOLDER = {PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{VALIDATE_RUN_ID}/
     mkdir -p {VALIDATE_RUN_FOLDER}/artifacts
 - Initialize base run files from templates: README.md, action-context.md, artifact-trace.md, gate-decisions.md, commands.log (empty JSONL), lifecycle-gates.log (empty)
-
-PARAMETERS:
-  VALIDATE_RUN_ID:  {YYYY-MM-DD-[a-z0-9]{8}; generated per SESSION_SETUP}
-  VALIDATION_SCOPE: {requirements | architecture | implementation | all}
-  FEATURE_ID:       {F####}                            # optional; narrows implementation validation to a single feature
-  RUN_ID:           {YYYY-MM-DD-[a-z0-9]{8}}           # parent feature run ID when implementation validation targets an in-progress feature stage before G4.6
-  STAGE:            {G0|G1|G2|G3|G4.5|G4.6|G4.7|closeout}   # for FEATURE_ID-scoped implementation validation; defaults to closeout
-  EFFECTIVE_DATE:   {YYYY-MM-DD; default 2026-05-19}   # rejected if earlier than default per §22
 
 PRECONDITIONS:
 - {VALIDATE_RUN_FOLDER} created with base run files
 - For VALIDATION_SCOPE in {requirements, all}: BLUEPRINT.md, REGISTRY.md, ROADMAP.md exist
 - For VALIDATION_SCOPE in {architecture, all}: solution-ontology.yaml, canonical-nodes.yaml, feature-mappings.yaml exist
 - For VALIDATION_SCOPE in {implementation, all}: at least one completed terminal feature in REGISTRY.md OR FEATURE_ID is set
-- When implementation validation targets an in-progress feature with STAGE in {G0..G4.5}: --run-id is mandatory
-- When implementation validation targets an approved feature at STAGE in {G4.7|closeout}: {EVIDENCE_ROOT}/latest-run.json must exist
+- When implementation validation targets an in-progress feature with STAGE in {G0..G5}: --run-id is mandatory
+- When implementation validation targets an approved feature at STAGE in {G8|closeout}: {FEATURE_INDEX_ROOT}/latest-run.json must exist
 
 CONTEXT LOADING ORDER:
 1. agents/ROUTER.md
@@ -41,7 +49,7 @@ FORBIDDEN:
 - Writing into any feature evidence package (validate is read-only with respect to feature packages)
 - Treating validator script output as a substitute for the PM/Architect agent-level validation work
 - Passing --evidence-effective-date earlier than the framework default
-- Calling --stage G4.7 or --stage closeout when invoked transitively from validate-trackers.py context (per §17 step 2: tracker integration uses --stage G4.6 only)
+- Calling --stage G8 or --stage closeout when invoked transitively from validate-trackers.py context (per §17 step 2: tracker integration uses --stage G6 only)
 - Producing validation summaries that hide errors as warnings
 - Skipping the SELF-REVIEW gate per agent
 - Bypassing the APPROVAL gate before reporting results upstream
@@ -123,5 +131,5 @@ EXIT VALIDATION:
 CONFLICT RESOLUTION:
 - PM findings disagree with Architect findings on the same artifact → escalate to user at V3; do not silently reconcile
 - validate-trackers.py reports a rule that validate-feature-evidence.py owns → defer to the feature evidence validator (single source of truth per §22)
-- validate-feature-evidence.py reports an error the operator believes is a validator defect → DO NOT bypass via --evidence-effective-date; route to the Phase 5 validator-defect fallback (record waivers.validator_defect in the affected feature manifest with follow-up; for in-progress features, log the defect as a mid-stage follow-up and create the waiver entry only when that feature reaches G4.7)
+- validate-feature-evidence.py reports an error the operator believes is a validator defect → DO NOT bypass via --evidence-effective-date; route to the Phase 5 validator-defect fallback (record waivers.validator_defect in the affected feature manifest with follow-up; for in-progress features, log the defect as a mid-stage follow-up and create the waiver entry only when that feature reaches G8)
 - registry-wide scan reports a pre-contract archived feature requiring evidence → check Evidence Reentry Date on that archived row; absence means no reentry claimed, so the requirement is the bug

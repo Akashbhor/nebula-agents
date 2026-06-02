@@ -21,14 +21,16 @@ Code Reviewer + Security
   ↓
 [SIGNOFF GATE: required reviewer evidence verified]
   ↓
-[PRODUCT MANAGER CLOSEOUT: status, archive, follow-up reconciliation]
+[CANDIDATE EVIDENCE GATE: pre-closeout evidence + tracker validation]
   ↓
-[TRACKER SYNC GATE: trackers and story index validated]
+Architect (Knowledge-Graph Reconciliation)
+  ↓ [ARCHITECT KG GATE: bind the as-built source into the graph for future runs]
+[PRODUCT MANAGER CLOSEOUT: status, archive, supersession, tracker sync, story index]
   ↓
 Feature Complete
 ```
 
-**Flow Type:** Mixed (architect-led orchestration kickoff, parallel implementation including deployability checks, parallel code+security reviews, single approval gate, required signoff verification, PM closeout, and final tracker sync; AI Engineer runs when feature includes AI scope)
+**Flow Type:** Mixed (architect-led orchestration kickoff, parallel implementation including deployability checks, parallel code+security reviews, single approval gate, required signoff verification, pre-closeout candidate evidence validation, a post-build architect knowledge-graph reconciliation, and PM closeout including tracker sync; AI Engineer runs when feature includes AI scope)
 
 ---
 
@@ -55,7 +57,7 @@ Load in this order when the work is feature-scoped:
 2. `agents/agent-map.yaml`
 3. `agents/docs/AGENT-USE.md`
 4. `agents/actions/feature.md`
-5. `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/feature-assembly-plan.md`
+5. `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/feature-assembly-plan.md` (the Primary Spec — authored in G0 Step 0 of this action; read once it exists, not a precondition)
 6. `{PRODUCT_ROOT}/planning-mds/knowledge-graph/solution-ontology.yaml`
 7. `{PRODUCT_ROOT}/planning-mds/knowledge-graph/canonical-nodes.yaml`
 8. `{PRODUCT_ROOT}/planning-mds/knowledge-graph/feature-mappings.yaml`
@@ -74,14 +76,15 @@ Load in this order when the work is feature-scoped:
 ## Primary Spec
 
 - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/feature-assembly-plan.md` is the canonical execution spec for feature implementation
+- It is **authored by this action at G0 (Step 0)** — it is not a `plan` deliverable and not a precondition (per `plan.md`, the assembly plan belongs to `feature.md` Step 0). On a clean first run it does not exist yet and G0 creates it; on a `drift-reconcile` or evidence-only rerun it already exists and G0 reconciles it instead of overwriting.
 - When the assembly plan conflicts with raw story text, follow the feature assembly plan and log the reconciliation
 
 ## Ownership Contract
 
-- `product-manager` owns feature closeout, trackers, `STATUS.md` final state, archive moves, and `feature-mappings.yaml` path/status updates
-- `architect` owns `feature-assembly-plan.md`, ADRs, canonical shared semantics, API contracts, schemas, and authorization artifacts
+- `product-manager` owns feature closeout, trackers, `STATUS.md` final state, archive moves, and the **lifecycle-coupled** `feature-mappings.yaml` path/status updates (e.g. `status → archived-done` and the archive-path rewrite that follow the folder move)
+- `architect` owns `feature-assembly-plan.md`, ADRs, canonical shared semantics, API contracts, schemas, authorization artifacts, and the **semantic knowledge-graph** — `code-index.yaml` bindings and `canonical-nodes.yaml`. The architect reconciles these against the as-built source at gate `G7` (after signoff, before PM closeout), so the graph the *next* feature's architect reads at G0 reflects what actually shipped
 - Implementation roles edit their runtime layers and shared feature evidence surfaces only
-- Shared-semantics changes route back to `architect`; other roles flag drift instead of redefining it
+- Shared-semantics and knowledge-graph **binding** changes route back to `architect`; other roles flag drift instead of redefining it. The PM closeout **verifies** the graph is green (does not author new bindings); a detected binding delta vs. the architect's `G7` reconciliation routes back to the architect rather than being patched in closeout
 
 ## Forbidden
 
@@ -91,8 +94,10 @@ Load in this order when the work is feature-scoped:
 - Editing a bound method body without prior `lookup.py --symbol <name>` (or `hint.py --symbol <name>`)
 - Editing shared semantics without prior `blast.py <node-id>`
 - Continuing after a runtime-blocked failure without re-running runtime preflight
-- Skipping any gate from `G0` through `G4.7`
-- Declaring done without the explicit Product Manager role switch at `G4.6`
+- Skipping any gate from `G0` through `G8` (including the `G7` architect knowledge-graph reconciliation)
+- Authoring new `code-index.yaml` bindings or `canonical-nodes.yaml` entries during PM closeout instead of at the `G7` architect gate (closeout verifies the graph; it does not shape it)
+- Running the path-sensitive `coverage-report.yaml` regeneration *before* the closeout archive move (it re-stales immediately; regenerate after the move)
+- Declaring done without the explicit Product Manager role switch at `G8`
 - Widening scope outside the current feature
 - Climbing past `max_auto_tier` without recording `workstate.py escalate`
 
@@ -103,9 +108,73 @@ Load in this order when the work is feature-scoped:
 - `G2 SELF-REVIEW` — Step 2 Agent Validation
 - `G3 CODE + SECURITY REVIEW` — Step 3 Parallel Reviews
 - `G4 APPROVAL` — Step 4 Feature Review
-- `G4.5 SIGNOFF` — Step 4.5 Required reviewer evidence verification
-- `G4.6 PM CLOSEOUT` — Step 4.6 Product Manager closeout and archive reconciliation
-- `G4.7 TRACKER SYNC` — Step 4.7 Final tracker validation
+- `G5 SIGNOFF` — Step 5 Required reviewer evidence verification
+- `G6 CANDIDATE EVIDENCE VALIDATION` — Step 6 pre-closeout evidence validation and tracker validation
+- `G7 ARCHITECT KG RECONCILIATION` — Step 7 architect binds the as-built source into the semantic knowledge-graph (`code-index.yaml`, `canonical-nodes.yaml`) before closeout
+- `G8 PM CLOSEOUT` — Step 8 Product Manager closeout, supersession, tracker sync, and final validation
+
+## Canonical Evidence Package
+
+Every governed completed-terminal feature run writes its evidence into the canonical package shape (§10) at:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{RUN_ID}/
+```
+
+The feature index root lives separately at `{PRODUCT_ROOT}/planning-mds/operations/evidence/features/F####-{slug}/` and carries `latest-run.json` once the run is approved.
+
+The §17 stage matrix dictates which artifacts must exist at each gate. The full set produced by closeout:
+
+- `README.md` (template: `agents/templates/feature-evidence-readme-template.md`)
+- `evidence-manifest.json` (template: `agents/templates/evidence-manifest-template.json`)
+- `action-context.md`
+- `feature-action-execution.md` (template: `agents/templates/feature-action-execution-template.md`)
+- `artifact-trace.md` (template: `agents/templates/artifact-trace-template.md`)
+- `gate-decisions.md` (template: `agents/templates/gate-decisions-template.md`)
+- `commands.log` (schema: `agents/templates/commands-log-template.md`)
+- `lifecycle-gates.log` (schema: `agents/templates/lifecycle-gates-log-template.md`)
+- `g0-assembly-plan-validation.md` (Architect output at G0)
+- `g1-runtime-preflight.md` (template: `agents/templates/runtime-preflight-template.md`; required only when `runtime_bearing = true`)
+- `g2-self-review.md` (template: `agents/templates/self-review-template.md`)
+- `test-plan.md` (template: `agents/templates/test-plan-template.md`)
+- `test-execution-report.md` (template: `agents/templates/test-execution-report-template.md`)
+- `coverage-report.md` (template: `agents/templates/coverage-report-template.md`)
+- `deployability-check.md` (template: `agents/templates/deployability-check-template.md`)
+- `code-review-report.md` (template: `agents/templates/code-review-report-template.md`)
+- `security-review-report.md` (template: `agents/templates/security-review-template.md`; required when `security_sensitive_scope = true` or Security Reviewer is required)
+- `signoff-ledger.md` (template: `agents/templates/signoff-ledger-template.md`)
+- `kg-reconciliation.md` (Architect output at `G7`; template: `agents/templates/kg-reconciliation-template.md`) — the as-built-vs-graph binding delta, new/affirmed canonical nodes, and the green-validator record
+- `pm-closeout.md` (template: `agents/templates/pm-closeout-template.md`)
+
+The feature index root also carries `latest-run.json` (§12) once the run is approved.
+
+Run-ID format: `YYYY-MM-DD-XXXXXXXX` per §11 — date is local-at-session-start; `XXXXXXXX` is 8-char hex from cryptographic randomness (e.g. `secrets.token_hex(4)`). The run ID is recorded in `action-context.md` and the manifest at G0 and carried unchanged through closeout. Validators must not infer the active run by sorting folders; see §17 for run-resolution rules.
+
+### Closeout Supersession-And-Publish Sequence (§17 step 4)
+
+When this action writes a new `latest-run.json` at G8/closeout, perform exactly this order:
+
+1. Invoke `agents/product-manager/scripts/patch-prior-manifest.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --new-run-id {RUN_ID}` to mark every prior approved manifest for this feature as `superseded`. The helper is idempotent and exits 0 with no priors.
+2. Only after step 1 succeeds, write `latest-run.json` pointing at the new run.
+
+If step 1 fails, do not proceed to step 2. Surface the failure with the operator runbook reference (`feature-evidence-package-standardization-plan-v2.md` §28 Phase 5 "Partial-closeout recovery"). Validator catch-rule `two_approved_runs_without_supersession_fails` enforces the invariant as defense in depth.
+
+### Per-Gate Evidence Validation (§17 / §24)
+
+Run `validate-feature-evidence.py` after producing each gate's artifacts so missing evidence is caught at the gate, not at closeout. Use the in-progress `--run-id` mode for gates before `latest-run.json` exists.
+
+| Gate | Command | Stage |
+|------|---------|-------|
+| G0   | `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --run-id {RUN_ID} --stage G0` | `G0` |
+| G1   | `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --run-id {RUN_ID} --stage G1` | `G1` |
+| G2   | `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --run-id {RUN_ID} --stage G2` | `G2` |
+| G3   | `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --run-id {RUN_ID} --stage G3` | `G3` |
+| G5 | `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --run-id {RUN_ID} --stage G5` | `G5` |
+| G6 | `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --run-id {RUN_ID} --stage G6` | `G6` candidate validation; runs **before** tracker sync per §17 step 1-2 |
+| G7 | `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-symbols && python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-drift` | Architect KG reconciliation — semantic-graph (`code-index.yaml` / `canonical-nodes.yaml`) bound against the as-built source; symbol + drift checks exit 0. Binds **code** paths only (stable across the closeout archive move) |
+| G8 | `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --stage closeout` | After §17 step 4 completes — `latest-run.json`, `kg-reconciliation.md`, and `pm-closeout.md` must exist; tracker results must be in `lifecycle-gates.log` |
+
+Stage-validation failures must be repaired before advancing the gate. Do not skip stage validation even when the missing artifact "will land later" — §17's stage matrix declares exactly which artifacts must exist by stage.
 
 ## Stop Conditions
 
@@ -119,16 +188,19 @@ Load in this order when the work is feature-scoped:
 
 ## Exit Validation
 
-Run in this order:
+Run in this order. Steps are grouped by gate; the `G7` architect group binds **code** paths (stable across the archive move) and the `G8` group runs the path-sensitive regeneration **after** the closeout archive move.
 
 1. Applicable backend / frontend / AI / QE runtime commands for changed surfaces, with evidence paths recorded under `{PRODUCT_ROOT}/planning-mds/operations/evidence/**`
-2. `python3 agents/product-manager/scripts/validate-trackers.py`
-3. `python3 agents/product-manager/scripts/generate-story-index.py {PRODUCT_ROOT}/planning-mds/features/` when stories changed
-4. `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --regenerate-symbols` when code in bound files changed
-5. `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --write-coverage-report` when KG changed
-6. `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-symbols`
-7. `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-drift`
-8. `python3 agents/scripts/validate_templates.py`
+2. **[G6]** `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --run-id {RUN_ID} --stage G6` (candidate validation before tracker sync per §17 step 1)
+3. **[G6]** `python3 agents/product-manager/scripts/validate-trackers.py` (calls feature-evidence at `--stage G6` per §22; appends tracker results to `lifecycle-gates.log`)
+4. **[G7]** `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --regenerate-symbols` when code in bound files changed (architect; after confirming/adding `code-index.yaml` bindings + `canonical-nodes.yaml` entries for the as-built source)
+5. **[G7]** `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-symbols`
+6. **[G7]** `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-drift` (the architect's semantic graph must be green before closeout)
+7. **[G8]** After §17 step 4 completes (`patch-prior-manifest.py` then `latest-run.json`) and the feature folder has been moved to `archive/`: `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --stage closeout`
+8. **[G8]** `python3 agents/product-manager/scripts/generate-story-index.py {PRODUCT_ROOT}/planning-mds/features/` when story files moved/changed
+9. **[G8]** `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --write-coverage-report` — run **after** the archive move, because it binds the (now-moved) feature-doc paths; running it earlier re-stales on the move
+10. **[G8]** `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-drift` (final confirmation the post-move graph is green)
+11. `python3 agents/scripts/validate_templates.py`
 
 ---
 
@@ -174,6 +246,7 @@ If a validation command fails with runtime symptoms (for example connection refu
    - Required backend/frontend/AI changes for this feature only
    - Integration checkpoints and dependency order
    - Test and release checklist for the vertical slice
+   - **Knowledge-Graph Binding Plan** — the *intended* semantic-graph delta: which capabilities/canonical nodes this feature is expected to add or extend, and the anticipated `code-index.yaml` glob(s). This is a prediction, not a contract; it is the baseline the `G7` reconciliation diffs the as-built source against. "No new nodes; reuses existing semantics" is a valid declaration.
 4. **Output artifacts:**
    - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/feature-assembly-plan.md` (canonical per-feature execution plan; use `agents/templates/feature-assembly-plan-template.md`)
    - Update `{PRODUCT_ROOT}/planning-mds/architecture/feature-assembly-plan.md` to reference the feature-local plan from the umbrella cross-feature sequencing view
@@ -319,6 +392,7 @@ Mandatory preflight before implementation validation runs:
    - Validate feature acceptance criteria coverage
    - Generate coverage report for feature code
    - When host browser dependencies block Playwright (for example `libnspr4`/`libnss3` missing), run Playwright in the project runtime container (for example official Playwright Docker image matching repo `@playwright/test` version), then record the container command and result in feature execution evidence
+   - **When `security_sensitive_scope = true`:** you are Responsible for *running* the four security scan classes (`dependency`, `secrets`, `sast`, `dast`) via `agents/security/scripts/*.sh` in application runtime containers, writing raw output under `{RUN_ID}/artifacts/security/`, and recording each in the manifest `security_scans{}` block (`ran`/`result`/`artifact`, or `ran: false` + waiver with `reason`/`owner`/`approved_on` for an unavailable scanner). Security owns the verdict — do not skip a class silently (the validator's `security_scan_*` rules fail it).
 4. **Follow SOLUTION-PATTERNS.md:**
    - Developers own unit/component and endpoint integration tests
    - QE validates coverage and closes critical cross-tier gaps
@@ -327,6 +401,7 @@ Mandatory preflight before implementation validation runs:
    - Test plan for feature
    - E2E tests (happy path + errors)
    - Feature test coverage report
+   - When `security_sensitive_scope = true`: `artifacts/security/` raw scan outputs + populated `security_scans{}` manifest block (handed to Security for the verdict)
    - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/STATUS.md` updates (QE feature-level signoff entry, validation evidence paths)
 
 #### 1e. DevOps (Feature Deployability Check)
@@ -498,6 +573,7 @@ Run these review agents in parallel:
    - `{PRODUCT_ROOT}/planning-mds/architecture/SOLUTION-PATTERNS.md`
    - Feature user stories with acceptance criteria
    - Existing `{PRODUCT_ROOT}/planning-mds/security/` artifacts (if present)
+   - QE's `security_scans{}` manifest block and raw outputs under `{RUN_ID}/artifacts/security/`
 
 3. **Execute security review (feature-focused):**
    - Check OWASP Top 10 risks relevant to this feature
@@ -505,7 +581,7 @@ Run these review agents in parallel:
    - Validate input/output validation and error leakage controls
    - Check secrets/config handling (no hardcoded secrets)
    - Validate audit logging coverage for mutations
-   - Run dependency/container vulnerability scans in application runtime containers (or CI jobs built from them)
+   - **You are Accountable for the scan verdict:** confirm `security_scans{}` covers all four classes (`dependency`, `secrets`, `sast`, `dast`), each either run with a resolvable artifact or carrying a complete waiver. A missing or unbacked class is a finding — do not `PASS` over it. Read the `artifacts/security/` outputs and apply exploitability/severity judgment the tools cannot; re-run any scanner yourself for deeper analysis when warranted.
 
 4. **Produce feature security review report:**
    ```markdown
@@ -640,10 +716,10 @@ Run these review agents in parallel:
    - **If "approve with justification":**
      - Capture explicit mitigation justification for remaining high issues
      - Log decision with mitigation plan
-     - Proceed to Step 4.5 (Signoff Gate)
+     - Proceed to Step 5 (Signoff Gate)
 
    - **If "approve":**
-     - Proceed to Step 4.5 (Signoff Gate)
+     - Proceed to Step 5 (Signoff Gate)
 
    - **If "reject":**
      - Capture feedback
@@ -661,7 +737,7 @@ Run these review agents in parallel:
 
 ---
 
-### Step 4.5: SIGNOFF GATE (Mandatory)
+### Step 5: SIGNOFF GATE (Mandatory)
 
 **Execution Instructions:**
 
@@ -680,7 +756,7 @@ Before setting feature status to `Done` or moving to archive, verify role signof
    - Block feature closeout
    - Route back to the owning reviewer role
 4. Only after all required signoffs pass:
-   - Proceed to Product Manager closeout
+   - Proceed to candidate evidence validation (Step 6 / gate `G6`)
 
 **Gate Criteria:**
 - [ ] Every required signoff role has a passing ledger entry
@@ -689,7 +765,55 @@ Before setting feature status to `Done` or moving to archive, verify role signof
 
 ---
 
-### Step 4.6: PRODUCT MANAGER CLOSEOUT (Mandatory)
+### Step 6: CANDIDATE EVIDENCE VALIDATION (Mandatory)
+
+**Gate `G6`.** Runs after signoff (`G5`), before the architect KG reconciliation (`G7`) and PM closeout (`G8`). This is the pre-closeout candidate checkpoint: confirm the run's evidence is complete and internally consistent **before** any closeout mutation (archive move, supersession, `latest-run.json`). No PM closeout actions occur here.
+
+**Execution Instructions:**
+
+1. Confirm all `G0`–`G5` evidence artifacts exist and their verdicts are passing.
+2. Write `feature-action-execution.md` with a gate-by-gate timeline of the run.
+3. Confirm the manifest is a pre-closeout candidate: `status: in-progress`, `gate_results` through `signoff` present, and `pm_closeout` / `tracker_sync` absent or `required: false` (no `latest-run.json` yet).
+4. Run candidate stage validation:
+   - `python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --run-id {RUN_ID} --stage G6`
+5. Run tracker validation (it internally calls feature-evidence at `--stage G6` per §22) and append the result to `lifecycle-gates.log`:
+   - `python3 agents/product-manager/scripts/validate-trackers.py`
+
+**Gate Criteria:**
+- [ ] All `G0`–`G5` evidence present with passing verdicts
+- [ ] `feature-action-execution.md` complete with a gate-by-gate timeline
+- [ ] Manifest is a valid pre-closeout candidate (no closeout artifacts yet)
+- [ ] `validate-feature-evidence.py --stage G6` exits 0
+- [ ] `validate-trackers.py` passes and its result is recorded in `lifecycle-gates.log`
+
+---
+
+### Step 7: ARCHITECT KNOWLEDGE-GRAPH RECONCILIATION (Mandatory)
+
+**Gate `G7`.** Runs after signoff (`G5`) and candidate validation (`G6`), before PM closeout (`G8`). The graph is now reconciled against the **as-built** source — what actually shipped, not what G0 predicted — so the knowledge-graph the *next* feature's architect reads at G0 is correct. This gate owns the **semantic** graph only; it binds **code** paths (`experience/...`, `api/...`, etc.) that do **not** move during the closeout archive step, so it is safe to run before the move.
+
+**Execution Instructions:**
+
+1. **Activate Architect agent** by reading `agents/architect/SKILL.md`.
+2. Diff the as-built source against the graph's G0 declaration (the `feature-assembly-plan.md` "Knowledge-Graph Binding Plan", if present) to find the binding delta — capabilities, modules, or shared semantics that emerged during implementation.
+3. For every new source surface that represents a capability or shared semantic, add or update its binding in `{PRODUCT_ROOT}/planning-mds/knowledge-graph/code-index.yaml`. Bind by **directory glob** where a cohesive folder represents one capability (e.g. `experience/src/features/forms/**`), not file-by-file. Existing globs that already cover new files need no change — confirm coverage rather than duplicating.
+4. If the feature introduced new canonical nodes or rationale (`WHY`) entries, add them to `{PRODUCT_ROOT}/planning-mds/knowledge-graph/canonical-nodes.yaml`. If it introduced none, state that explicitly.
+5. Regenerate and validate the symbol layer for changed bound files: `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --regenerate-symbols --check-symbols`. (Editing a bound method body without first consulting `lookup.py --symbol` / `hint.py --symbol` is forbidden — the symbol layer keeps edits narrow.)
+6. Run `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-drift` and resolve any errors. Do **not** run `--write-coverage-report` here — coverage binds feature-doc paths that the PM closeout archive move will relocate; regenerating it now re-stales it on the move. Coverage regeneration is a `G8` step, after the move.
+7. Record the outcome in `kg-reconciliation.md` (template: `agents/templates/kg-reconciliation-template.md`): the binding delta applied, new/affirmed canonical nodes, and the green symbol + drift validator results.
+
+**Completion Criteria:**
+- [ ] Architect agent activated for the reconciliation
+- [ ] `code-index.yaml` bindings exist for every new capability/shared-semantic source surface (glob-based; existing coverage confirmed, not duplicated)
+- [ ] New canonical nodes/rationale recorded in `canonical-nodes.yaml`, or "none introduced" stated explicitly
+- [ ] `validate.py --regenerate-symbols --check-symbols` exits 0
+- [ ] `validate.py --check-drift` exits 0
+- [ ] `coverage-report.yaml` was **not** regenerated at this gate (deferred to `G8`, post-archive-move)
+- [ ] `kg-reconciliation.md` written
+
+---
+
+### Step 8: PRODUCT MANAGER CLOSEOUT (Mandatory)
 
 **Execution Instructions:**
 
@@ -707,50 +831,28 @@ Before setting feature status to `Done` or moving to archive, verify role signof
 4. If ontology-backed planning exists for the feature, update feature/path/status references in:
    - `{PRODUCT_ROOT}/planning-mds/knowledge-graph/feature-mappings.yaml`
 5. Record any orphaned stories, deferred follow-ups, or explicit mitigation carry-overs before final validation
-6. **Knowledge-graph validation:**
-   - Confirm implementation agents added `code-index.yaml` bindings for new source files created during the feature. If bindings are missing, add them now.
-   - Run `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-drift` and resolve any errors before proceeding.
-   - If the feature introduced new canonical nodes or rationale entries, confirm they are present in `canonical-nodes.yaml`.
-   - Regenerate and validate the symbol layer: `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --regenerate-symbols --check-symbols`. Editing a bound method body without first consulting `lookup.py --symbol` (or `hint.py --symbol`) is forbidden — the symbol-layer routing aid keeps edits narrow.
+6. **Knowledge-graph: verify, then regenerate the path-sensitive layer (do not author bindings here):**
+   - The **semantic** graph (`code-index.yaml` bindings, `canonical-nodes.yaml`) was reconciled by the Architect at `G7` and `kg-reconciliation.md` records it. Closeout **verifies** it is green — it does not add or edit bindings. If a binding gap is discovered now (a capability surface the `G7` reconciliation missed), route back to the Architect for a `G7` delta pass rather than editing the graph in closeout.
+   - After the archive folder move (step 3) and the `feature-mappings.yaml` status/path update (step 4), regenerate the **path-sensitive** coverage layer, which binds the now-relocated feature-doc paths: `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --write-coverage-report`.
+   - Run `python3 {PRODUCT_ROOT}/scripts/kg/validate.py --check-drift` to confirm the post-move graph is green.
+7. **Publish the approved run** in the supersession-and-publish order (see "Closeout Supersession-And-Publish Sequence"): run `patch-prior-manifest.py` to mark prior approved manifests `superseded`, then write `latest-run.json` pointing at this run, then finalize the manifest to `status: approved`.
+8. **Tracker sync:** regenerate the story rollup when story files moved/changed (`python3 agents/product-manager/scripts/generate-story-index.py {PRODUCT_ROOT}/planning-mds/features/`), then run final closeout validation (`python3 agents/product-manager/scripts/validate-feature-evidence.py --product-root {PRODUCT_ROOT} --feature {FEATURE_ID} --stage closeout`) and `python3 agents/product-manager/scripts/validate-trackers.py`. Treat any tracker drift as blocking and re-run after repair.
 
 **Completion Criteria:**
-- [ ] Product Manager closeout executed after signoff passed
+- [ ] Product Manager closeout executed after signoff and `G7` architect KG reconciliation passed
 - [ ] Final feature status and archive decision recorded
 - [ ] Deferred follow-ups and mitigation notes captured
-- [ ] Ontology feature mapping updated if closeout changes feature path/status
-- [ ] Code-index bindings exist for new source files introduced by this feature
-- [ ] `validate.py --check-drift` exits 0
-- [ ] `validate.py --regenerate-symbols --check-symbols` exits 0
+- [ ] `feature-mappings.yaml` status/path updated for the archive move (lifecycle-coupled, PM-owned)
+- [ ] `kg-reconciliation.md` present and its semantic-graph checks green (verified, not re-authored, by closeout)
+- [ ] `coverage-report.yaml` regenerated **after** the archive move
+- [ ] `validate.py --check-drift` exits 0 on the post-move graph
+- [ ] Prior approved manifests patched to `superseded` and `latest-run.json` written (supersession-and-publish order)
+- [ ] REGISTRY/ROADMAP/BLUEPRINT synchronized; STORY-INDEX regenerated if story files changed
+- [ ] Final `validate-feature-evidence.py --stage closeout` and `validate-trackers.py` pass (tracker results recorded in `lifecycle-gates.log`)
 
 ---
 
-### Step 4.7: TRACKER SYNC GATE (Mandatory)
-
-**Execution Instructions:**
-
-Validate the closeout updates before declaring feature completion:
-
-1. Regenerate story rollup when story files changed:
-   - `python3 agents/product-manager/scripts/generate-story-index.py {PRODUCT_ROOT}/planning-mds/features/`
-
-2. Validate consistency:
-   - `python3 agents/product-manager/scripts/validate-trackers.py`
-
-3. If validation fails:
-   - Treat as a blocking issue
-   - Fix tracker drift and re-run validation before completion
-
-**Gate Criteria:**
-- [ ] Feature STATUS reflects final approved state
-- [ ] Product Manager closeout executed before tracker validation
-- [ ] Completed feature folders are moved to `{PRODUCT_ROOT}/planning-mds/features/archive/`
-- [ ] REGISTRY/ROADMAP/BLUEPRINT are synchronized
-- [ ] STORY-INDEX regenerated if story files changed
-- [ ] Tracker validation passes
-
----
-
-### Step 5: Feature Complete
+### Step 9: Feature Complete
 
 **Execution Instructions:**
 
@@ -853,7 +955,7 @@ Feature delivered! ✓
 ## Prerequisites
 
 Before running feature action:
-- [ ] Plan action completed for this feature
+- [ ] Plan action completed for this feature (stories + architecture signed off; the `feature-assembly-plan.md` is NOT a prerequisite — this action authors it at G0 Step 0)
 - [ ] Feature has clear user stories with acceptance criteria
 - [ ] Feature scope is small (2-5 days of work)
 - [ ] SOLUTION-PATTERNS.md exists

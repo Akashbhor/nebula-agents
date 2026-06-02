@@ -18,13 +18,16 @@ Use this checklist before tagging an initial public preview of the framework.
 ## 3) Manual Orchestration Reproducibility
 
 - [ ] `agents/docs/MANUAL-ORCHESTRATION-RUNBOOK.md` exists and is linked from `README.md`.
-- [ ] At least one representative run evidence package exists under `{PRODUCT_ROOT}/planning-mds/operations/evidence/`.
-- [ ] Evidence package contains all required files:
+- [ ] At least one representative manual/orchestrated run evidence package exists under `{PRODUCT_ROOT}/planning-mds/operations/evidence/runs/{run-id}/` (the base run profile defined in `agents/docs/AGENT-OPS.md`).
+- [ ] Base run evidence package contains all required files:
+  - [ ] `README.md`
   - [ ] `action-context.md`
   - [ ] `artifact-trace.md`
   - [ ] `gate-decisions.md`
   - [ ] `commands.log`
   - [ ] `lifecycle-gates.log`
+
+> **Base run evidence is for representative manual runs only.** It does **not** substitute for the per-feature role reports required by the feature package profile in `agents/docs/AGENT-OPS.md` (Package Anatomy). Completed terminal feature runs always write into `planning-mds/operations/evidence/runs/{run-id}/`, publish `features/F####-{slug}/latest-run.json`, and validate via `validate-feature-evidence.py` — checking the base files alone is not sufficient.
 
 ## 4) Lifecycle And CI Clarity
 

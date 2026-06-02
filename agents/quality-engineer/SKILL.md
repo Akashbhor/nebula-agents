@@ -140,8 +140,25 @@ Your responsibility is to implement the **quality assurance layer** - tests that
 ### 5. Security Testing
 - Vulnerability scanning (Trivy - dependencies + containers)
 - Dynamic security testing (OWASP ZAP)
-- Static analysis (SonarQube Community)
+- Static analysis / SAST (Semgrep — zero-infra, per-feature gate)
 - Secrets scanning (Gitleaks)
+
+> **SAST = Semgrep for the per-feature gate.** Semgrep runs as a single CLI with
+> no server (`agents/security/scripts/run-sast-scan.sh`), so it fits the
+> `security_scans.sast` class. SonarQube Community is **not** the per-feature
+> SAST tool — it is a stateful server reserved for release-cadence quality
+> reporting (see the QE overlay note in `docker-compose.qe.yml`), run
+> deliberately, not on every feature.
+
+You are **Responsible** for *running* these scanners; Security is **Accountable**
+for interpreting the output and owning the verdict (see Security skill). For a
+`security_sensitive_scope` feature, run the four scan classes — `dependency`,
+`secrets`, `sast`, `dast` — via `agents/security/scripts/*.sh`, write raw output
+under `{RUN_ID}/artifacts/security/`, and record each in the manifest
+`security_scans{}` block: `{"ran": true, "result": "<clean|findings>", "artifact":
+"artifacts/security/<file>", "waiver": null}`. If a scanner is unavailable, set
+`ran: false` and attach a waiver (`reason`, `owner`, `approved_on`) rather than
+omitting the class — the validator (`security_scan_*` rules) fails a silent skip.
 
 ### 6. Performance Testing
 - Frontend performance (Lighthouse CI - Core Web Vitals)
@@ -225,7 +242,8 @@ Use `--file <repo-path>` to reverse-map an existing code file back into the onto
 **Security Testing:**
 - Trivy (vulnerability scanning)
 - OWASP ZAP (DAST)
-- SonarQube Community (SAST)
+- Semgrep (SAST, per-feature gate)
+- SonarQube Community (release-cadence quality reporting, not the per-feature SAST gate)
 - Gitleaks (secrets detection)
 
 **Contract Testing:**
@@ -434,8 +452,9 @@ For code examples of common test patterns (Testing Error Scenarios, Testing Asyn
 |------|------|---------|
 | **Vulnerabilities** | Trivy | `trivy fs .` |
 | **DAST** | OWASP ZAP | `docker run -t owasp/zap2docker-stable zap-baseline.py -t http://localhost` |
-| **SAST** | SonarQube Community | `dotnet sonarscanner begin && dotnet build && dotnet sonarscanner end` |
+| **SAST** (per-feature gate) | Semgrep | `sh agents/security/scripts/run-sast-scan.sh --path . --report-dir <RUN>/artifacts/security` |
 | **Secrets** | Gitleaks | `gitleaks detect --source .` |
+| **Quality reporting** (release cadence) | SonarQube Community | `dotnet sonarscanner begin && dotnet build && dotnet sonarscanner end` (needs the `docker-compose.qe.yml` overlay up; not part of the per-feature `security_scans` gate) |
 
 ## Troubleshooting
 
@@ -472,3 +491,34 @@ Solution-specific references:
 ---
 
 **Quality Engineer** ensures quality through comprehensive automated testing across all tiers. You validate functionality, performance, security, and accessibility - not just click through screens manually.
+
+## Feature Evidence Contract (§10, §15, §18)
+
+Quality Engineer produces three QE-owned artifacts at G2 inside the feature evidence package:
+
+```text
+{PRODUCT_ROOT}/planning-mds/operations/evidence/F####-{slug}/{RUN_ID}/
+  test-plan.md              # template: agents/templates/test-plan-template.md
+  test-execution-report.md  # template: agents/templates/test-execution-report-template.md
+  coverage-report.md        # template: agents/templates/coverage-report-template.md
+```
+
+`test-execution-report.md` is the QE verdict artifact for `role_results['Quality Engineer']` in the manifest.
+
+### Coverage Waiver Flow (§10, §11, §18)
+
+`coverage-report.md` is **required even when coverage is waived**. When coverage cannot be produced or is below target:
+
+1. Add a `Waiver Block` section to `coverage-report.md` with owner, date, scope, reason, follow-up.
+2. Record the waiver in `evidence-manifest.json` `waivers.coverage` with `required`, `reason`, `owner`, `approved_on`, `follow_up`.
+3. PM adds a §15 PM Acceptance Line in `pm-closeout.md` `Recommendation Acceptances`:
+
+```text
+- Accepted: coverage — <reason summary>; <approved_on YYYY-MM-DD>
+```
+
+Without that PM Acceptance Line, the validator fires `coverage_waiver_missing_pm_acceptance_fails`. If the waiver scope/owner/date does not match the report, `coverage_waiver_mismatch_fails` fires.
+
+### Recommendation Severity Scale (§15)
+
+Recommendations under a `PASS WITH RECOMMENDATIONS` verdict use the canonical bullet `- [severity] text — owner: X; follow-up: Y` with severity `low` / `medium` / `high` / `critical`. `high` / `critical` require PM mitigation in `pm-closeout.md`.
