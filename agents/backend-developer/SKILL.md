@@ -423,6 +423,7 @@ Backend stack packs:
 - `agents/backend-developer/references/clean-architecture-guide.md`
 - `agents/backend-developer/references/stack-packs/dotnet/pack.md`
 - `agents/backend-developer/references/stack-packs/java-spring-boot/pack.md`
+- `agents/backend-developer/references/stack-packs/fastapi/pack.md`
 
 Planned (not yet created):
 - `agents/backend-developer/references/json-schema-validation.md`

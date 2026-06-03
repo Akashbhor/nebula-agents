@@ -42,7 +42,10 @@ All paths relative to `agents/architect/`.
 
 | Task | References to Load |
 |------|--------------------|
-| React component implementation | `references/code-patterns.md`, `references/react-best-practices.md` |
+| Frontend stack-pack selection | `references/stack-packs/README.md` |
+| React component implementation | `references/code-patterns.md`, `references/stack-packs/react/pack.md` |
+| Python / Streamlit frontend implementation | `references/code-patterns.md`, `references/stack-packs/streamlit/pack.md` |
+| htmx frontend implementation | `references/code-patterns.md`, `references/stack-packs/htmx/pack.md` |
 | Form handling, JSON Schema forms | `references/json-schema-forms-guide.md` |
 | API calls, data fetching, caching | `references/tanstack-query-guide.md` |
 | Frontend testing (Vitest, RTL) | `references/testing-guide.md` |
@@ -95,6 +98,7 @@ All paths relative to `agents/nebula-adapter/`.
 | Backend stack-pack selection | `references/stack-packs/README.md` |
 | .NET backend pack | `references/stack-packs/dotnet/pack.md` |
 | Java / Spring Boot backend pack | `references/stack-packs/java-spring-boot/pack.md` |
+| Python / FastAPI backend pack | `references/stack-packs/fastapi/pack.md` |
 
 All paths relative to `agents/backend-developer/`.
 

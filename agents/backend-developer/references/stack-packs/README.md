@@ -6,9 +6,11 @@ These files hold stack-specific backend guidance that stays out of the core `bac
 
 - Use the `.NET` pack for ASP.NET Core / EF Core products.
 - Use the `Java / Spring Boot` pack for Spring-based products.
+- Use the `Python / FastAPI` pack for FastAPI-based products.
 - Do not load both packs for the same session unless the product actually contains both backend stacks.
 
 ## Packs
 
 - `dotnet/pack.md`
 - `java-spring-boot/pack.md`
+- `fastapi/pack.md`

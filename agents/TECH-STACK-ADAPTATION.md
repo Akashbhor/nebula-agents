@@ -39,6 +39,16 @@ Keep unchanged:
 - `clean-architecture-guide.md` (generic)
 - `SKILL.md` (generic responsibilities)
 
+### Example: Frontend Stack Packs
+
+Replace or add:
+- `agents/frontend-developer/references/stack-packs/react/pack.md` → `stack-packs/streamlit/pack.md`
+- `agents/frontend-developer/references/stack-packs/react/pack.md` → `stack-packs/htmx/pack.md`
+
+Keep unchanged:
+- `ux-audit-ruleset.md` (generic)
+- `code-patterns.md` (shared implementation patterns)
+
 ### When to Use Nebula Adapter
 
 Use the `nebula-adapter` role when the change is not product code but framework wiring:
