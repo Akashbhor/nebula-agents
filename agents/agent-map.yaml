@@ -124,6 +124,20 @@ agents:
       - {PRODUCT_ROOT}/planning-mds/features/**/STATUS.md          # AI progress, validation evidence
       - {PRODUCT_ROOT}/planning-mds/features/**/GETTING-STARTED.md  # key files, verification steps
 
+  a2a-engineer:
+    skill: agents/a2a-engineer/SKILL.md
+    condition: scope includes A2A, agent cards, remote agent transport, or streaming protocol surfaces
+    reads:
+      - {PRODUCT_ROOT}/planning-mds/BLUEPRINT.md
+      - {PRODUCT_ROOT}/planning-mds/architecture/SOLUTION-PATTERNS.md
+      - {PRODUCT_ROOT}/planning-mds/knowledge-graph/**
+      - {PRODUCT_ROOT}/planning-mds/features/**
+      - agents/a2a-engineer/references/**
+    writes:
+      - {PRODUCT_ROOT}/neuron/**
+      - {PRODUCT_ROOT}/planning-mds/features/**/STATUS.md          # A2A progress, validation evidence
+      - {PRODUCT_ROOT}/planning-mds/features/**/GETTING-STARTED.md  # key files, verification steps
+
   quality-engineer:
     skill: agents/quality-engineer/SKILL.md
     reads:

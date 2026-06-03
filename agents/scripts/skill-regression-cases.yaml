@@ -20,6 +20,14 @@ cases:
     prompt: "Integrate an LLM workflow and expose MCP tools for this assistant."
     expected_skill: ai-engineer
 
+  - id: a2a_transport
+    prompt: "Expose an A2A agent card and streaming remote-agent endpoint for this service."
+    expected_skill: a2a-engineer
+
+  - id: nebula_adapter_layout
+    prompt: "Update the framework routing docs for a non-default product layout and stack pack."
+    expected_skill: nebula-adapter
+
   - id: qe_e2e
     prompt: "Create end-to-end tests, validate coverage, and run performance tests."
     expected_skill: quality-engineer
@@ -66,6 +74,18 @@ content_assertions:
     skill: ai-engineer
     must_contain: "lookup.py --symbol"
     rationale: Symbol-layer routing aid added during KG Phase 1
+  - id: nebula_adapter_layout_guard
+    skill: nebula-adapter
+    must_contain: "Scope & Boundaries"
+    rationale: Nebula adapter should expose the standard skill sections
+  - id: a2a_engineer_agent_card
+    skill: a2a-engineer
+    must_contain: "Agent Card"
+    rationale: A2A transport role should document the public card contract
+  - id: a2a_engineer_feedback_loop
+    skill: a2a-engineer
+    must_contain: "Feedback Loop"
+    rationale: A2A transport role should include a transport-level feedback loop
   - id: architect_symbol_regen_bullet
     skill: architect
     must_contain: "regenerate the symbol layer"

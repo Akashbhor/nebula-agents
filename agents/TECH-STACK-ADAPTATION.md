@@ -10,10 +10,12 @@ This framework is reusable across stacks. The agent roles and templates stay the
 4) Update any scripts that are stack-specific (test runners, scaffolds).
 5) Keep existing templates unchanged; add new stack-specific or compatibility SKILL.md files only when introducing a new role or a small stack pack.
 6) Use the `nebula-adapter` role when the change is about framework routing, stack packs, or non-default product layouts.
+7) Use the `a2a-engineer` role when the change is about agent cards, remote agent transport, or streaming protocol surfaces.
 
 ## What Works Unchanged (Any Tech Stack)
 
 - All existing agent `SKILL.md` files, plus any explicitly added compatibility roles
+- `a2a-engineer` for Agent-to-Agent transport surfaces and remote-agent compatibility
 - All templates in `agents/templates/`
 - Product Manager, Architect, QA, Security, Code Reviewer roles
 - Generic references (clean architecture, testing best practices, UX, accessibility, etc.)
@@ -47,6 +49,14 @@ Use the `nebula-adapter` role when the change is not product code but framework 
 - supporting a non-default product layout such as `portal/`, `api/`, or `services/`
 - updating framework docs so the stack/layout assumptions stay consistent
 
+### When to Use A2A Engineer
+
+Use the `a2a-engineer` role when the change is a protocol surface rather than a business feature:
+- exposing an agent card or discovery endpoint
+- wiring task submission, status updates, and streaming responses
+- connecting one agent service to another remote agent host
+- hardening auth, validation, and rate limits around the agent transport
+
 ### Example: Vue.js Frontend
 
 Replace or add:
@@ -63,4 +73,5 @@ Keep unchanged:
 - Prefer adding new stack-specific reference files over renaming existing ones to avoid breaking links.
 - If you need a new stack, add a small “stack pack” under each role’s `references/` folder.
 - If the product uses a different frontend root name such as `portal/`, declare that in `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md` and bind it in `code-index.yaml` rather than hardcoding `experience/` in framework docs.
+- If the product exposes remote agent endpoints, keep the A2A protocol surface in the product's agent-service root and document the card URL, task flow, and transport config alongside the runtime contract.
 - Keep solution-specific examples in `{PRODUCT_ROOT}/planning-mds/`, never in `agents/`.

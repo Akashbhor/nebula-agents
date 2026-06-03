@@ -34,7 +34,7 @@ See the framework root `README.md` and `CONSUMER-CONTRACT.md` for the full consu
                               Actions compose Agents
                                         ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  AGENTS (Role-Based Specialists) — 12 Agents                                │
+│  AGENTS (Role-Based Specialists) — 13 Agents                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  Planning Phase (Phase A-B)                                                 │

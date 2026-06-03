@@ -45,6 +45,7 @@ Typical services:
 - frontend service
 - database service
 - optional auth/cache/queue/worker services
+- optional agent transport service (for A2A agent cards, task endpoints, and streaming)
 
 Common backend runtimes include ASP.NET Core and Java Spring Boot. The framework container should not assume one runtime or one folder layout; the product runtime image should match the detected stack and the declared roots in `BLUEPRINT.md` / `code-index.yaml`.
 
@@ -74,3 +75,4 @@ Application Containers
 - Stack-specific SDK/tooling belongs with the application runtime containers, not the builder base image.
 - Application container strategy is project-specific and evolves with architecture decisions in `{PRODUCT_ROOT}/planning-mds/`.
 - If the frontend root is named `portal/` instead of `experience/`, treat it as the same frontend runtime class and document the name in `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md` and `code-index.yaml`.
+- If a product exposes remote agent endpoints, keep that runtime in the application container tier and document the A2A transport contract, card URL, and stream/task ports in the product planning artifacts.

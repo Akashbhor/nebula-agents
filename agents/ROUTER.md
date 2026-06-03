@@ -1,6 +1,6 @@
 # Reference Router
 
-20,700+ lines of reference docs across 11 agent roles. Loading all references
+20,700+ lines of reference docs across 13 agent roles. Loading all references
 for a role wastes context on material irrelevant to the current task.
 
 **Rule**: Before loading any file from `agents/<role>/references/`, consult
@@ -105,6 +105,14 @@ All paths relative to `agents/backend-developer/`.
 | Python AI/LLM implementation | `references/code-patterns.md` |
 
 All paths relative to `agents/ai-engineer/`.
+
+## A2A Engineer (agent transport)
+
+| Task | References to Load |
+|------|--------------------|
+| Agent cards, A2A transport, streaming, remote agent integration | `references/a2a-integration-guide.md` |
+
+All paths relative to `agents/a2a-engineer/`.
 
 ## Quality Engineer (577 lines → ~555 per task)
 
