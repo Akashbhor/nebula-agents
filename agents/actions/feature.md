@@ -379,7 +379,28 @@ Mandatory preflight before implementation validation runs:
    - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/STATUS.md` updates (AI Progress section, validation evidence)
    - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/GETTING-STARTED.md` updates (AI runtime / setup notes)
 
-#### 1d. Quality Engineer (Feature Scope)
+#### 1d. A2A Engineer (Feature Scope, if A2A / remote-agent scope)
+1. **Activate A2A Engineer agent** by reading `agents/a2a-engineer/SKILL.md`
+2. **Read context:**
+   - A2A-related user stories for THIS FEATURE
+   - `{PRODUCT_ROOT}/planning-mds/architecture/SOLUTION-PATTERNS.md`
+   - Existing `{PRODUCT_ROOT}/neuron/` code or agent-service root
+3. **Execute responsibilities (feature-scoped):**
+   - Implement agent-card, task, and streaming logic for this feature
+   - Add/modify remote-agent adapters if the feature requires them
+   - Add runtime guards and tests for protocol behavior
+4. **Follow SOLUTION-PATTERNS.md:**
+   - No hardcoded secrets
+   - Explicit integration contracts with backend/frontend/AI layers
+   - Observable task and stream behavior
+5. **Outputs (feature-specific):**
+   - `{PRODUCT_ROOT}/neuron/` feature implementation
+   - A2A tests
+   - Transport/config updates
+   - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/STATUS.md` updates (A2A Progress section, validation evidence)
+   - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/GETTING-STARTED.md` updates (runtime / setup notes)
+
+#### 1e. Quality Engineer (Feature Scope)
 1. **Activate Quality Engineer agent** by reading `agents/quality-engineer/SKILL.md`
 2. **Read context:**
    - User stories for THIS FEATURE with acceptance criteria
@@ -404,7 +425,7 @@ Mandatory preflight before implementation validation runs:
    - When `security_sensitive_scope = true`: `artifacts/security/` raw scan outputs + populated `security_scans{}` manifest block (handed to Security for the verdict)
    - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/STATUS.md` updates (QE feature-level signoff entry, validation evidence paths)
 
-#### 1e. DevOps (Feature Deployability Check)
+#### 1f. DevOps (Feature Deployability Check)
 1. **Activate DevOps agent** by reading `agents/devops/SKILL.md`
 2. **Read context:**
    - Feature assembly plan (`{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/feature-assembly-plan.md`)
@@ -423,7 +444,7 @@ Mandatory preflight before implementation validation runs:
    - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/STATUS.md` updates (deployability evidence, Cross-Cutting checklist items)
 
 **Completion Criteria for Step 1:**
-- [ ] All required agents completed feature implementation (Backend, Frontend, Quality, DevOps, and AI Engineer if AI scope)
+- [ ] All required agents completed feature implementation (Backend, Frontend, Quality, DevOps, AI Engineer if AI scope, and A2A Engineer if A2A scope)
 - [ ] Feature code compiles/builds successfully in application runtime containers
 - [ ] Runtime preflight evidence recorded before validation command execution
 - [ ] No critical errors

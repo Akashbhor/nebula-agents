@@ -12,7 +12,7 @@ Downstream products consume it as a **sibling repo**. Agents open a session insi
 
 ## What it owns
 
-- **Role definitions** — `agents/<role>/SKILL.md`, references, and scripts for each framework role (architect, product-manager, backend-developer, frontend-developer, security, devops, code-reviewer, quality-engineer, blogger, etc.)
+- **Role definitions** — `agents/<role>/SKILL.md`, references, and scripts for each framework role (architect, product-manager, backend-developer, frontend-developer, security, devops, code-reviewer, quality-engineer, blogger, a2a-engineer, nebula-adapter, etc.)
 - **Action protocols** — `agents/actions/*.md` for plan, feature, build, review, blog, and other action flows
 - **Prompt templates** — `agents/templates/prompts/` automation-safe and operator-friendly variants
 - **Genericness enforcement** — `agents/scripts/validate-genericness.py` with an embedded domain-term denylist
@@ -84,12 +84,12 @@ The framework has two views: a **composition model** (how actions compose agents
 │  blog       │ Blogger dev logs & articles                                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-* AI Engineer runs when stories include AI/LLM/MCP scope. Architect owns implementation orchestration.
+* AI Engineer runs when stories include AI/LLM/MCP scope. A2A Engineer runs when agent-to-agent transport or remote agent exposure is in scope. Architect owns implementation orchestration.
                                         ↓
                               Actions compose Agents
                                         ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  AGENTS (Role-Based Specialists) — 11 Agents                                │
+│  AGENTS (Role-Based Specialists) — 13 Agents                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Planning Phase (Phase A-B)                                                 │
@@ -99,7 +99,8 @@ The framework has two views: a **composition model** (how actions compose agents
 │  Implementation Phase (Phase C)                                             │
 │  ├─ backend-developer  │ Backend APIs, domain logic                         │
 │  ├─ frontend-developer │ UI components, forms, client state                 │
-│  ├─ ai-engineer        │ LLMs, agents, MCP, AI workflows                    │
+│  ├─ ai-engineer        │ LLMs, prompts, MCP, AI workflows                  │
+│  ├─ a2a-engineer       │ Agent cards, remote transport, streaming agents   │
 │  ├─ quality-engineer   │ Unit, integration, E2E tests                       │
 │  └─ devops             │ Containers, compose, deployment                    │
 │                                                                             │
@@ -141,7 +142,7 @@ The framework has two views: a **composition model** (how actions compose agents
 
 ─────────────────────────────────────────────────────────────────────────────
 
-  9 Actions · 11 Agents · 1 Source of Truth (BLUEPRINT.md, per product)
+  9 Actions · 13 Agents · 1 Source of Truth (BLUEPRINT.md, per product)
 ```
 
 ### Consumption model

@@ -325,8 +325,31 @@ All stack-specific execution (compile/tests/scans) must run in application runti
    - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/STATUS.md` updates (AI Progress section, validation evidence)
    - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/GETTING-STARTED.md` updates (AI runtime / setup notes)
 
+#### 1f. A2A Engineer (if A2A / remote-agent scope)
+1. **Activate A2A Engineer agent** by reading `agents/a2a-engineer/SKILL.md`
+2. **Read context:**
+   - `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md` (agent transport requirements and constraints)
+   - `{PRODUCT_ROOT}/planning-mds/architecture/SOLUTION-PATTERNS.md`
+   - `{PRODUCT_ROOT}/planning-mds/features/` (agent-card or remote-agent acceptance criteria in story files)
+   - Existing `{PRODUCT_ROOT}/neuron/` code or agent-service root (if present)
+3. **Execute responsibilities:**
+   - Implement A2A agent cards, request handlers, and task lifecycle wiring
+   - Implement streaming updates and remote-agent interoperability when required by stories
+   - Add auth, validation, and reliability guards at the transport edge
+   - Write unit/integration tests for protocol behavior
+4. **Follow SOLUTION-PATTERNS.md:**
+   - Keep transport config in environment/config files (no hardcoded secrets)
+   - Keep protocol contracts explicit for backend/AI integration
+   - Keep streaming and task state observable
+5. **Outputs:**
+   - `{PRODUCT_ROOT}/neuron/` A2A implementation updates
+   - Agent-card and transport config updates
+   - A2A protocol tests
+   - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/STATUS.md` updates (A2A Progress section, validation evidence)
+   - `{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/GETTING-STARTED.md` updates (runtime / setup notes)
+
 **Completion Criteria for Step 1:**
-- [ ] All required agents have completed their work (Backend, Frontend, Quality, DevOps, and AI Engineer if AI scope)
+- [ ] All required agents have completed their work (Backend, Frontend, Quality, DevOps, AI Engineer if AI scope, and A2A Engineer if A2A scope)
 - [ ] Code compiles/builds successfully in application runtime containers
 - [ ] No critical errors or blockers
 

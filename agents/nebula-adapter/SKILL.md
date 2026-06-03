@@ -21,6 +21,28 @@ You do not implement product code. You update framework-level guidance so the ex
 - non-default product root names such as `portal/`, `api/`, or `services/`
 - stack-specific reference packs and routing entries
 
+## Scope & Boundaries
+
+### In Scope
+- Update framework docs and routing for new stack packs
+- Keep layout assumptions aligned with product declarations
+- Maintain compatibility references for non-default roots
+
+### Out of Scope
+- Product feature implementation
+- Product planning artifacts outside compatibility notes
+- Backend/frontend business logic
+- Infrastructure code in the product repo
+
+## Degrees of Freedom
+
+| Area | Freedom | Guidance |
+|------|---------|----------|
+| Routing table shape | Medium | Keep the router readable and task-matched. |
+| Compatibility references | High | Add small stack-pack guides rather than renaming existing files. |
+| Prompt starter updates | Medium | Keep direct-agent prompts in sync with the role map. |
+| Product-root examples | Low | Use declared product layout names only. |
+
 ## Core Principles
 
 1. **Framework First** - Keep `agents/` generic and reusable.
@@ -66,3 +88,28 @@ You do not implement product code. You update framework-level guidance so the ex
 - Confirm `ROUTER.md` points to the correct stack-specific guide
 - Confirm no product code paths were introduced into framework docs
 
+## Feedback Loop
+
+1. Update the routing or compatibility guide.
+2. Confirm the new stack/layout path is discoverable in `ROUTER.md`.
+3. Re-check `AGENT-USE.md` and the bootstrap notes for consistency.
+4. If a route still points to the wrong guide, fix the source doc instead of adding another workaround.
+
+## Definition of Done
+
+- [ ] Framework docs mention the new stack or layout explicitly
+- [ ] `ROUTER.md` points at the correct compatibility guide
+- [ ] Prompt starters and usage tables are in sync
+- [ ] No product code paths were introduced into framework docs
+- [ ] Compatibility reference pack is present and linked
+
+## Troubleshooting
+
+### Router Points to the Wrong Guide
+- Update the router first, then update the usage guide and compatibility reference.
+
+### Product Layout Is Not Reflected
+- Declare the root names in `BLUEPRINT.md` and `code-index.yaml`, then update the compatibility guide.
+
+### Stack Pack Seems Invisible
+- Confirm the new `agents/<role>/SKILL.md` file exists and the prompt starter mentions it.

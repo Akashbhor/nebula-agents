@@ -164,9 +164,10 @@ Your responsibility is to define **HOW** to build what the Product Manager speci
    - **When considering a new node, service, or public method name**: run `lookup.py --defines <proposed-name>` to catch duplicate surfaces.
    - **When refactoring an interface or base method**: run `lookup.py --implementers <interface-symbol-id>` (or `--overrides <method-id>`) — the returned set is the change scope.
    - **At every release-readiness checkpoint**:
-     - `validate.py --check-orphans` — for each orphan, decide bind / remove / exempt. Pair with `dead-code.py --safe-only` for symbol-level review. Thresholds: `agents/architect/references/dead-code-review-guide.md`.
-     - `risk.py` — surface canonical nodes in the **high** (`kg.risk` ≥ 7) or **critical** (`kg.risk` ≥ 9) bands and propose mitigations. Weights/bands: `agents/architect/references/risk-scoring-guide.md`.
-     - Review `bus_factor_flag: true` entries in `coverage-report.yaml` and propose knowledge-share follow-ups. Thresholds: `agents/architect/references/hotspot-review-guide.md`.
+   - `validate.py --check-orphans` — for each orphan, decide bind / remove / exempt. Pair with `dead-code.py --safe-only` for symbol-level review. Thresholds: `agents/architect/references/dead-code-review-guide.md`.
+   - `risk.py` — surface canonical nodes in the **high** (`kg.risk` ≥ 7) or **critical** (`kg.risk` ≥ 9) bands and propose mitigations. Weights/bands: `agents/architect/references/risk-scoring-guide.md`.
+   - Review `bus_factor_flag: true` entries in `coverage-report.yaml` and propose knowledge-share follow-ups. Thresholds: `agents/architect/references/hotspot-review-guide.md`.
+   - `python3 {PRODUCT_ROOT}/scripts/kg/risk.py` — review high-risk architecture changes before release readiness.
 
 ## Capability Recommendation
 
@@ -202,7 +203,7 @@ For KG query/health semantics and source-precedence rules see
 `agents/docs/KNOWLEDGE-GRAPH.md`. In short: when ontology coverage exists,
 run `lookup.py <feature-or-story-id>` before broad repo reads; after
 design sessions that add new aggregate methods or service operations,
-regenerate symbols (`validate.py --regenerate-symbols`) and confirm
+regenerate the symbol layer (`validate.py --regenerate-symbols`) and confirm
 binding with `lookup.py --symbol <name>`.
 
 ## References
@@ -415,9 +416,10 @@ Before declaring work complete, verify each deliverable:
 8. Verify feature assembly execution plan (`{PRODUCT_ROOT}/planning-mds/features/F{NNNN}-{slug}/feature-assembly-plan.md`) exists and is implementation-ready: every API endpoint has a corresponding Step with file paths, code signatures, logic flow, Casbin pattern, and HTTP response table. Cross-check against OpenAPI endpoints — no endpoint should be missing from the plan.
 9. Verify mutation traceability for every capture/edit/save/update/manage/submit/approve/assign/transition story: no read-only rendering can satisfy a mutation story unless explicitly marked read-only, and every mutation has endpoint/service/carrier/auth/concurrency/audit/test coverage.
 10. If inconsistencies found → fix, re-validate
-11. Complete post-session knowledge capture (responsibility #13) — save non-obvious decisions and gotchas to KG notes, ADRs, or feature docs
-12. Complete structural KG updates (responsibility #14) — add rationale entries for new ADRs, canonical nodes for new design elements, code-index bindings for new artifacts, and run `validate.py` clean
-13. Only declare Definition of Done when all cross-checks pass
+11. harvest novel inline decision markers when they clarify architectural trade-offs or design decisions
+12. Complete post-session knowledge capture (responsibility #13) — save non-obvious decisions and gotchas to KG notes, ADRs, or feature docs
+13. Complete structural KG updates (responsibility #14) — add rationale entries for new ADRs, canonical nodes for new design elements, code-index bindings for new artifacts, and run `validate.py` clean
+14. Only declare Definition of Done when all cross-checks pass
 
 ## Definition of Done
 
