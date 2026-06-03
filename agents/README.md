@@ -46,7 +46,7 @@ See the framework root `README.md` and `CONSUMER-CONTRACT.md` for the full consu
 │                                                                              │
 │  Implementation Phase (Phase C)                                             │
 │  ├─ backend-developer  │ Backend services, domain logic ({PRODUCT_ROOT}/engine/)       │
-│  ├─ frontend-developer │ UI, forms, API wiring ({PRODUCT_ROOT}/experience/)            │
+│  ├─ frontend-developer │ UI, forms, API wiring ({PRODUCT_ROOT}/experience/ or portal/) │
 │  ├─ ai-engineer        │ LLMs, agents, MCP, workflows ({PRODUCT_ROOT}/neuron/) 🧠       │
 │  ├─ quality-engineer   │ Unit, integration, E2E tests                       │
 │  └─ devops             │ Docker, docker-compose, deployment                 │
@@ -178,7 +178,7 @@ See **[actions/README.md](./actions/README.md)** for complete action flow docume
 
 ## Tech Stack Assumptions
 
-The framework is opinionated about delivery practices and provides stack-specific references in some agent guides. The default examples still lean toward the original .NET + React + PostgreSQL product, but the framework is stack-agnostic at the contract level. If your product uses Java/Spring Boot, Node, Python, or another stack, keep the agent roles and action contracts; replace the stack-specific reference guides and examples with ones that match your stack (see `agents/TECH-STACK-ADAPTATION.md`).
+The framework is opinionated about delivery practices and provides stack-specific references in some agent guides. The default examples still lean toward the original .NET + React + PostgreSQL product, but the framework is stack-agnostic at the contract level. If your product uses Java/Spring Boot, Vue 3 + Vite + TypeScript, Node, Python, or another stack, keep the agent roles and action contracts; replace the stack-specific reference guides and examples with ones that match your stack (see `agents/TECH-STACK-ADAPTATION.md`).
 
 ---
 

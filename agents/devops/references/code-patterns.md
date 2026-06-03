@@ -51,7 +51,7 @@ ENTRYPOINT ["dotnet", "MyApp.Api.dll"]
 - SDK only in build stage (secure)
 - Runtime image is minimal (~200MB vs 1GB)
 
-### Dockerfile (Frontend - React + Vite)
+### Dockerfile (Frontend - React or Vue + Vite)
 
 ```dockerfile
 # Build stage
@@ -73,7 +73,7 @@ WORKDIR /usr/share/nginx/html
 # Copy custom nginx config
 COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built assets
+# Copy built assets (React and Vue both emit to dist/)
 COPY --from=build /app/dist .
 
 # Health check
@@ -193,7 +193,7 @@ services:
     volumes:
       - ./src:/app/src  # Hot reload for development
 
-  # Frontend (React + Vite)
+  # Frontend (React or Vue + Vite)
   frontend:
     build:
       context: .
@@ -204,9 +204,9 @@ services:
       - VITE_API_URL=http://localhost:5000
       - VITE_KEYCLOAK_URL=http://localhost:8080
     ports:
-      - "3000:3000"
+      - "5173:5173"
     volumes:
-      - ./experience:/app  # Hot reload
+      - ./experience:/app  # Hot reload (or ./portal:/app for Vue portal roots)
       - /app/node_modules  # Don't mount node_modules
     depends_on:
       - backend
@@ -463,7 +463,7 @@ app.MapGet("/health/ready", async (AppDbContext db) =>
 });
 ```
 
-**Frontend (React):**
+**Frontend (React or Vue):**
 ```typescript
 // public/health endpoint
 app.get('/health', (req, res) => {

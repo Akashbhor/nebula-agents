@@ -47,11 +47,12 @@ Use the `nebula-adapter` role when the change is not product code but framework 
 - supporting a non-default product layout such as `portal/`, `api/`, or `services/`
 - updating framework docs so the stack/layout assumptions stay consistent
 
-### Example: Vue.js Frontend
+### Example: Vue 3 + Vite + TypeScript Frontend
 
 Replace or add:
 - `agents/frontend-developer/references/react-best-practices.md` → `vue-best-practices.md`
 - Update component examples in `testing-guide.md` if they are React-specific
+- Update container and routing examples to point at the declared frontend root, such as `portal/`
 
 Keep unchanged:
 - `typescript-patterns.md`

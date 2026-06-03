@@ -105,8 +105,8 @@ Phase 3: Implementation (Generate Configs)
    - If the product declares a non-default backend root, inspect that path instead of assuming `engine/`.
    - If the backend is Java / Spring Boot, prefer Maven or Gradle wrappers, Actuator health checks, and multi-stage JDK/JRE Dockerfiles.
 
-2. **Inspect `{PRODUCT_ROOT}/experience/` (Frontend):**
-   - Detect frontend framework (React, Vue, Angular)
+2. **Inspect `{PRODUCT_ROOT}/experience/` or declared `{PRODUCT_ROOT}/portal/` (Frontend):**
+   - Detect frontend framework (React, Vue 3, Angular)
    - Identify build tool (Vite, Webpack, Angular CLI)
    - Find API endpoint configuration
    - Determine runtime (static files need Nginx)
@@ -190,7 +190,7 @@ Phase 3: Implementation (Generate Configs)
 
 2. **Generate Dockerfiles:**
    - `{PRODUCT_ROOT}/engine/Dockerfile` - Backend API (multi-stage build; JDK builder + slim JRE runtime for Java services)
-   - `{PRODUCT_ROOT}/experience/Dockerfile` - Frontend SPA (node build + nginx runtime)
+   - `{PRODUCT_ROOT}/experience/Dockerfile` or `{PRODUCT_ROOT}/portal/Dockerfile` - Frontend SPA (node build + nginx runtime)
    - `{PRODUCT_ROOT}/neuron/Dockerfile` - AI layer (Python with dependencies)
    - If the blueprint declares `portal/`, `api/`, or `services/`, generate Dockerfiles under the declared product folders and keep the compose wiring aligned.
    - Optimize each Dockerfile for the detected framework
@@ -400,7 +400,7 @@ Pre-deploy, run `python3 {PRODUCT_ROOT}/scripts/kg/diff-impact.py <release-range
 
 ### 2. Containerize Applications
 - Write Dockerfile for backend (C# .NET)
-- Write Dockerfile for frontend (React + Vite)
+- Write Dockerfile for frontend (React or Vue + Vite)
 - Write Dockerfile for AI/neuron (Python)
 - Optimize images (multi-stage builds)
 - Test containers locally

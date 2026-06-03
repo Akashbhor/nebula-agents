@@ -43,6 +43,7 @@ All paths relative to `agents/architect/`.
 | Task | References to Load |
 |------|--------------------|
 | React component implementation | `references/code-patterns.md`, `references/react-best-practices.md` |
+| Vue 3 + Vite + TypeScript portal implementation | `references/code-patterns.md`, `references/vue-best-practices.md` |
 | Form handling, JSON Schema forms | `references/json-schema-forms-guide.md` |
 | API calls, data fetching, caching | `references/tanstack-query-guide.md` |
 | Frontend testing (Vitest, RTL) | `references/testing-guide.md` |

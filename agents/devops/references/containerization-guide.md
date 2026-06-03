@@ -105,39 +105,23 @@ Scan the codebase to detect languages, frameworks, dependencies, and deployment 
 
 ---
 
-### 1.2 Frontend Service Detection ({PRODUCT_ROOT}/experience/)
+### 1.2 Frontend Service Detection ({PRODUCT_ROOT}/experience/ or declared portal root)
 
-#### React / Vite SPA
+#### React / Vue / Vite SPA
 ```bash
 # Detection signals
-- package.json with "react" and "vite"
+- package.json with "react" and "vite", or "vue" and "vite"
 - vite.config.ts
-- src/main.tsx or src/index.tsx
+- src/main.tsx or src/index.tsx, or src/main.ts
+- App.tsx or App.vue
 - index.html
 
 # Extract information
-- React version: package.json dependencies
+- React or Vue version: package.json dependencies
 - Build tool: Vite (vite.config.ts)
-- Port: vite.config.ts server.port (default 3000)
+- Port: Vite dev server default 5173 unless overridden
 - API endpoint: Check .env files or constants for API_URL
 - Runtime: Static files (needs nginx for production)
-```
-
----
-
-#### Vue / Vite SPA
-```bash
-# Detection signals
-- package.json with "vue"
-- vite.config.ts
-- src/main.ts with createApp
-- App.vue
-
-# Extract information
-- Vue version: package.json
-- Build tool: Vite
-- Port: 3000 (default)
-- API endpoint: env variables or config
 ```
 
 ---
@@ -272,11 +256,11 @@ os.getenv("VAR_NAME") in code
    - Auth: Keycloak (JWT)
    - Port: 5000
 
-2. **Frontend ({PRODUCT_ROOT}/experience/)**
-   - Language: TypeScript / React 18
+2. **Frontend ({PRODUCT_ROOT}/experience/ or declared portal root)**
+   - Language: TypeScript / React 18 or Vue 3
    - Build: Vite
    - Runtime: Static files (Nginx for prod)
-   - Port: 3000 (dev), 80 (prod)
+   - Port: 5173 (dev default) or declared Vite port, 80 (prod)
 
 3. **AI Layer ({PRODUCT_ROOT}/neuron/)**
    - Language: Python 3.11
@@ -294,7 +278,7 @@ os.getenv("VAR_NAME") in code
 ```
 {PRODUCT_ROOT}/neuron/ ──┐
           ├──> {PRODUCT_ROOT}/engine/ ──> postgres
-{PRODUCT_ROOT}/experience/ ┘
+{PRODUCT_ROOT}/experience/ or {PRODUCT_ROOT}/portal/ ┘
 ```
 
 ### Environment Variables Required
@@ -302,7 +286,7 @@ os.getenv("VAR_NAME") in code
 - DB_NAME, DB_USER, DB_PASSWORD
 - KEYCLOAK_URL, JWT_SECRET
 - LLM_PROVIDER, LLM_API_KEY
-- API_URL (for {PRODUCT_ROOT}/experience/)
+- API_URL (for {PRODUCT_ROOT}/experience/ or declared portal root)
 ```
 
 ---
@@ -318,7 +302,7 @@ Based on code inspection, design the deployment architecture and create a soluti
 
 #### Pattern 1: API-Only (Backend + Database)
 **Use when:**
-- No frontend detected ({PRODUCT_ROOT}/experience/ doesn't exist)
+- No frontend detected ({PRODUCT_ROOT}/experience/ or declared portal root doesn't exist)
 - Building pure API service
 - Frontend hosted separately
 
@@ -342,14 +326,14 @@ Based on code inspection, design the deployment architecture and create a soluti
 
 #### Pattern 2: Traditional 3-Tier (API + SPA + Database)
 **Use when:**
-- Backend ({PRODUCT_ROOT}/engine/) + Frontend ({PRODUCT_ROOT}/experience/) both exist
+- Backend ({PRODUCT_ROOT}/engine/) + Frontend ({PRODUCT_ROOT}/experience/ or portal/) both exist
 - No AI layer ({PRODUCT_ROOT}/neuron/ doesn't exist)
 - Standard web application
 
 **Architecture:**
 ```
 ┌──────────────┐
-│   Frontend   │ :3000
+│   Frontend   │ :5173
 └──────┬───────┘
        │
        ↓
@@ -366,13 +350,13 @@ Based on code inspection, design the deployment architecture and create a soluti
 **Services needed:**
 - Database
 - API ({PRODUCT_ROOT}/engine/)
-- Web ({PRODUCT_ROOT}/experience/)
+- Web ({PRODUCT_ROOT}/experience/ or portal/)
 
 ---
 
 #### Pattern 3: AI-Enabled 3-Tier (API + SPA + AI + Database)
 **Use when:**
-- All three layers exist: {PRODUCT_ROOT}/engine/, {PRODUCT_ROOT}/experience/, {PRODUCT_ROOT}/neuron/
+- All three layers exist: {PRODUCT_ROOT}/engine/, {PRODUCT_ROOT}/experience/ or {PRODUCT_ROOT}/portal/, {PRODUCT_ROOT}/neuron/
 - AI features integrated
 - Application uses LLM capabilities
 
@@ -397,7 +381,7 @@ Based on code inspection, design the deployment architecture and create a soluti
 **Services needed:**
 - Database
 - API ({PRODUCT_ROOT}/engine/)
-- Web ({PRODUCT_ROOT}/experience/)
+- Web ({PRODUCT_ROOT}/experience/ or declared portal root)
 - Neuron ({PRODUCT_ROOT}/neuron/)
 
 ---
@@ -431,7 +415,7 @@ Based on code inspection, design the deployment architecture and create a soluti
 - Multiple databases (one per service)
 - Multiple APIs
 - API Gateway (optional)
-- Web ({PRODUCT_ROOT}/experience/)
+- Web ({PRODUCT_ROOT}/experience/ or declared portal root)
 
 ---
 
@@ -467,10 +451,10 @@ Health check: HTTP GET /health or /api/health
 
 #### Frontend Service
 ```yaml
-Service: web ({PRODUCT_ROOT}/experience/)
-Build: ./experience/Dockerfile (multi-stage with nginx)
+Service: web ({PRODUCT_ROOT}/experience/ or portal/)
+Build: ./experience/Dockerfile or ./portal/Dockerfile (multi-stage with nginx)
 Runtime: Nginx (production) or Vite dev server (dev)
-Ports: 3000:3000 (dev), 80:80 (prod)
+Ports: 5173:5173 (dev), 80:80 (prod)
 Dependencies: [api]
 Environment:
   - API_URL
@@ -680,7 +664,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 ---
 
-#### React + Vite + Nginx Dockerfile
+#### React or Vue + Vite + Nginx Dockerfile
 ```dockerfile
 # Build stage
 FROM node:20-alpine AS build
