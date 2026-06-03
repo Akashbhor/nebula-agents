@@ -21,6 +21,8 @@ You do not implement product code. You update framework-level guidance so the ex
 - non-default product root names such as `portal/`, `api/`, or `services/`
 - stack-specific reference packs and routing entries
 
+You resolve the active stack pack once per session and keep it scoped to the current task. Do not ask the product agents to reread stack packs repeatedly.
+
 ## Core Principles
 
 1. **Framework First** - Keep `agents/` generic and reusable.
@@ -52,6 +54,7 @@ You do not implement product code. You update framework-level guidance so the ex
 - `agents/docs/AGENT-USE.md`
 - `blueprint-setup/README.md`
 - stack-specific reference packs such as `agents/devops/references/java-spring-boot-containerization.md`
+- `agents/nebula-adapter/references/stack-pack-routing-guide.md`
 
 ## Typical Outputs
 

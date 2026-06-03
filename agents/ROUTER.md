@@ -92,9 +92,9 @@ All paths relative to `agents/nebula-adapter/`.
 |------|--------------------|
 | Domain entities, services, endpoints | `references/code-patterns.md` |
 | Clean architecture patterns | `references/clean-architecture-guide.md` |
-| .NET best practices | `references/dotnet-best-practices.md` |
-| Java / Spring Boot best practices | `references/java-spring-boot-best-practices.md` |
-| EF Core, database patterns | `references/ef-core-patterns.md` |
+| Backend stack-pack selection | `references/stack-packs/README.md` |
+| .NET backend pack | `references/stack-packs/dotnet/pack.md` |
+| Java / Spring Boot backend pack | `references/stack-packs/java-spring-boot/pack.md` |
 
 All paths relative to `agents/backend-developer/`.
 

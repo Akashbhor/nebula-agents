@@ -192,7 +192,7 @@ Phase 3: Implementation (Generate Configs)
    - `{PRODUCT_ROOT}/engine/Dockerfile` - Backend API (multi-stage build; JDK builder + slim JRE runtime for Java services)
    - `{PRODUCT_ROOT}/experience/Dockerfile` - Frontend SPA (node build + nginx runtime)
    - `{PRODUCT_ROOT}/neuron/Dockerfile` - AI layer (Python with dependencies)
-   - If the blueprint declares `portal/`, `api/`, or `services/`, generate Dockerfiles under the declared product folders and keep the compose wiring aligned.
+   - If the blueprint declares a non-default backend root, generate Dockerfiles under the declared product folders and keep the compose wiring aligned.
    - Optimize each Dockerfile for the detected framework
 
 3. **Generate Environment Configuration:**
@@ -302,6 +302,7 @@ Phase 3: Implementation (Generate Configs)
 - `{PRODUCT_ROOT}/planning-mds/BLUEPRINT.md` - Tech stack, deployment requirements
 - `{PRODUCT_ROOT}/planning-mds/architecture/` - Architecture, NFRs
 - `{PRODUCT_ROOT}/planning-mds/knowledge-graph/` - Ontology mappings and code-index bindings for scoped retrieval
+- `agents/nebula-adapter/references/stack-pack-routing-guide.md` - Session-scoped stack/layout selection
 - Source code (to containerize and deploy)
 
 When ontology coverage exists for the target feature or story, run
